@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./styles.css";
 import MyStatefulEditor from "./rte_test";
 
 export default function App() {
