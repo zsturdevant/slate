@@ -38,6 +38,12 @@ class Server:
     def close_doc():
           return True
     
+    # The main method that runs the server
+    if __name__ == "__main__":
+        print("we should do something here")
+          
+          
+    
     
 
 
