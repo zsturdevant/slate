@@ -1,3 +1,6 @@
+import Socket.IO
+
+
 class Server:
     def __init__(self):
             pass
@@ -40,7 +43,10 @@ class Server:
     
     # The main method that runs the server
     if __name__ == "__main__":
-        print("we should do something here")
+        ## set up the server
+
+        ## wait for clients, create a new thread for each client and handle their request stuff
+        print("something useful")
           
           
     
