@@ -6,6 +6,7 @@ class Document:
 
     def name_file(self, name):
         self.doc_name = name
+        return 1
 
 
     def add_author(self, new_author):
@@ -15,7 +16,7 @@ class Document:
     def update_contents(self, update_list, position_list):
         if len(update_list) != len(position_list):
             print("unable to update, list and positions were of different sizes")
-            return 
+            return 0
         
         content_length = len(self.contents)
 
@@ -33,9 +34,12 @@ class Document:
         return 1
     
     def save(self):
+
         with open(self.doc_name, 'w') as file:
             contents = self.contents.join(' ')
             file.write(contents)
+
+        return 1
 
     
 
