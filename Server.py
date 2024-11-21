@@ -1,10 +1,13 @@
 import Socket.IO
 import os
+import 
 
 class Document:
     def __init__(self, author_list, doc_name, contents =[]):
         self.name = doc_name
         self.author_list = author_list
+
+        # need to make this a crdt array
         self.contents = contents
 
     def name_file(self, name):
@@ -28,7 +31,7 @@ class Document:
             if self.author_list == []:
                  self.save()
                  
-
+    # update this with crdt stuff
     def update_contents(self, update_list, position_list):
         if len(update_list) != len(position_list):
             print("unable to update, list and positions were of different sizes")
@@ -47,18 +50,29 @@ class Document:
             else:
                 self.contents[position] = update
 
-        return 1
+        return True
     
     def send_contets(self, users):
          print("do me still")
+
+    def delete(self, doc_path):
+        try:
+            os.remove(doc_path)
+            return True
+        except FileNotFoundError:
+            print("File not found.")
+            return False
+        except PermissionError:
+            print("invalid permission to delete this file.")
+            return False
+         
     
     def save(self):
-
         with open(self.doc_name, 'w') as file:
             contents = self.contents.join(' ')
             file.write(contents)
 
-        return 1
+        return True
 
 class Server:
 
@@ -66,20 +80,37 @@ class Server:
          self.doc_path = doc_path
          entries = os.listdir(doc_path)
          for entry in entries:
+              # add opening all exiting documents to this
               document_list.append(entry)
 
     # if the user creates a new document that doesn't already exist in the database, add it to the database
     def add_doc(self, author, doc_name):
         doc = Document([author], doc_name)
         self.document_list.append(doc)
+        return doc
 
-    #open
+    # open an existing document
     def open_doc(self, author, doc_name):
-         with open(doc_name, 'r') as file:
-            lines = file.readlines()
-            contents = lines.split(' ')
-            new_doc = Document(author, doc_name, contents)
-            return new_doc
+         if self.entries.contains(doc_name):
+
+            with open(doc_name, 'r') as file:
+                lines = file.readlines()
+                contents = lines.split(' ')
+                new_doc = Document(author, doc_name, contents)
+                return new_doc
+         else:
+              return self.add_doc(author, doc_name)
+    
+    # Allow user to delete a document 
+    def delete_doc(self, doc, doc_path):
+         doc.delete(doc_path)
+         self.document_list.remove(doc)
+         del doc
+
+
+    # Functionality to rename an exixting document
+    def rename_doc(self, doc, new_name):
+         doc.name_file(new_name)
     
     def open_connection():
           return True
@@ -88,23 +119,17 @@ class Server:
     # do we implement some sort of authentication or login?
     def user():
           return True
-    
 
-    # How do we handle the case that the user tries to add a document name that already exists? 
-    # Do we tell them they must create a new name for the document?
-    def add_doc():
-         return True
- 
-    #  when a user opens a document, an new instance of the server is created
-    def open_doc():
-          return True
     
     # utilize CRDTpy and array stuff for the live editing the user is doing on the doc
-    def edit_doc():
-            return True
+    def edit_doc(doc, update_list, position_list):
+        return doc.update_contents(update_list, position_list)
 
     # once the user finishes editing the document/closes it, write document to the database and close the instance
-    def close_doc():
+    def close_doc(self, doc):
+          doc.save()
+          self.document_list.remove(doc)
+          del doc
           return True
     
 # The main method that runs the server
