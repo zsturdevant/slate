@@ -71,7 +71,6 @@ class Document:
         with open(self.doc_name, 'w') as file:
             contents = self.contents.join(' ')
             file.write(contents)
-
         return True
 
 class Server:
@@ -85,7 +84,8 @@ class Server:
 
     # if the user creates a new document that doesn't already exist in the database, add it to the database
     def add_doc(self, author, doc_name):
-        doc = Document([author], doc_name)
+        full_doc_name = self.doc_path + doc_name
+        doc = Document([author], full_doc_name)
         self.document_list.append(doc)
         return doc
 
