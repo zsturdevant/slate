@@ -12,6 +12,7 @@ export default function App() {
       <h1>Hello CodeSandbox</h1>
       <h2>by -Swapnadeep</h2>
       {/* <RichTextEditor />. */}
+      {/* onChange is the event that we are sending to the server */}
       <MyStatefulEditor markup="" onChange={onChange} />
       <button
         onClick={() => {
