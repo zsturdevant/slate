@@ -13,7 +13,7 @@ class Document:
         #pycrdt document that contains the array with the contents of the message
         doc = Doc()
         contents = Array()
-        doc["array"]= contents
+        doc["array"] = contents
         self.doc = doc
 
 
@@ -65,8 +65,6 @@ class Document:
 
         return True
     
-    def send_contets(self, users):
-         print("do me still")
 
     def delete(self, doc_path):
         try:
@@ -103,31 +101,38 @@ class Server:
     def add_doc(self, author, doc_name):
         full_doc_name = self.doc_path + doc_name
         doc = Document([author], full_doc_name)
-        self.document_list.append(doc)
+        if doc.name not in self.document_list:
+            self.document_list.append(doc.name)
         return doc
 
     # open an existing document
     def open_doc(self, author, doc_name):
-         if self.entries.contains(doc_name):
-
-            with open(doc_name, 'r') as file:
-                lines = file.readlines()
-                contents = lines.split(' ')
+         if doc_name in self.document_list:
+            path = doc_path + doc_name
+            with open(path, 'r') as file:
+                contents = []
+                for next in file:
+                    line = next.split(' ')
+                    contents += line
                 new_doc = Document(author, doc_name, contents)
                 return new_doc
          else:
               return self.add_doc(author, doc_name)
     
-    # Allow user to delete a document 
+    # Allow user to delete a document if desired
     def delete_doc(self, doc: Document, doc_path):
+         if doc.name in self.document_list:
+            self.document_list.remove(doc.name)
          doc.delete(doc_path)
-         self.document_list.remove(doc)
          del doc
 
 
     # Functionality to rename an exixting document
     def rename_doc(self, doc: Document, new_name):
-         doc.name_file(new_name)
+        self.document_list.remove(doc.name)
+        doc.name_file(new_name)
+        self.document_list.append(new_name)
+         
     
     def open_connection():
           return True
@@ -145,7 +150,6 @@ class Server:
     # once the user finishes editing the document/closes it, write document to the database and close the instance
     def close_doc(self, doc: Document):
           doc.save()
-          self.document_list.remove(doc)
           del doc
           return True
     
@@ -168,19 +172,60 @@ async def websocket_connection(server: Server, doc: Document, websocket: WebSock
     try:
         keep_going = True
         while keep_going:
-            command:str = await websocket.receive_text_text()
+            command:str = await websocket.receive_text()
+
+            # if the command contains edits to the document 
             if command.startswith("edit"):
+
+                #tell the other clients working on this document about the changes
                 for connection in doc.author_list:
                     if connection != websocket:
                         await connection.send_text(command)
+
+                # edit actual document 
+                lists = []
+                operation_list = []
+                update_list = []
+                position_list = []
+                lists.append(operation_list)
+                lists.append(update_list)
+                lists.append(position_list)
+                list_num = 0
+
+                raw_text = command.split(" ")
+                # need to figure out what the edits are 
+                for word in raw_text:
+                    if word == "edit":
+                        continue
+                    elif word == "operation_list":
+                        list_num = 0
+
+                    elif word == "update_list":
+                        list_num = 1
+
+                    elif word == "position_list":
+                        list_num = 2
+
+                    else:
+                        if list_num == 2:
+                            lists[list_num].append(int(word))
+                        else:
+                            lists[list_num].append(word)
+
+                # update the contents of the document
+                doc.update_contents(operation_list, update_list, position_list)
+
+            # close the connection with that user 
             elif command.startswith("close"): 
                 doc.author_list.remove(websocket)
-                
+
                 #close the document fully if the last user is finished
                 if(doc.author_list.isEmpty()):
                     server.close_doc(doc)
 
                 keep_going = False
+            
+            
 
     except Exception as e:
         print(f"WebSocket connection closed: {e}")
@@ -189,9 +234,13 @@ async def websocket_connection(server: Server, doc: Document, websocket: WebSock
 # The main method that runs the server
 if __name__ == "__main__":
     doc_path = "./documents/"
-
     server = Server(doc_path, [])
-    doc = server.add_doc("zach", "zach.txt")
+    server.add_doc("zach", "zach.txt")
+    doc = server.open_doc("zach", "zach.txt")
+
+
+    # server.delete_doc(doc, (doc_path + doc.name))
+
 
     operation_list = ["append", "append", "append", "delete", "insert"]
     update_list = ["hello", "world", "my", "none", "silly"]
@@ -202,22 +251,24 @@ if __name__ == "__main__":
     update_list = ["hello"]
     position_list = [0]
     doc.update_contents(operation_list,update_list, position_list)
+    server.close_doc(doc)
 
     
 
     # make a pool of workers to handle different clients 
-    thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers= 10)
-    print(server.document_list)
-    server.close_doc(doc)
+    # thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers= 10)
 
-    keep_going = True
-    while keep_going:
-        #wait for a websocket connection
-        
-        thread_pool.submit(handle_client, websocket)
-        keep_going = False
+    # server.close_doc(doc)
 
-    thread_pool.shutdown(wait=True)
+    # keep_going = True
+    # while keep_going:
+    #     #wait for a websocket connection
+
+    #     # this needs to be finished
+    #     thread_pool.submit(websocket_connection, websocket)
+    #     keep_going = False
+
+    # thread_pool.shutdown(wait=True)
     
 
 
