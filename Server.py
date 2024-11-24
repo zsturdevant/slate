@@ -163,72 +163,72 @@ class Server:
 
     
 
-app = FastAPI()
+# app = FastAPI()
 
-@app.websocket("/ws")
-async def websocket_connection(server: Server, doc: Document, websocket: WebSocket):
-    await websocket.accept()
-    doc.add_author(websocket)
-    try:
-        keep_going = True
-        while keep_going:
-            command:str = await websocket.receive_text()
+# @app.websocket("/ws")
+# async def websocket_connection(server: Server, doc: Document, websocket: WebSocket):
+#     await websocket.accept()
+#     doc.add_author(websocket)
+#     try:
+#         keep_going = True
+#         while keep_going:
+#             command:str = await websocket.receive_text()
 
-            # if the command contains edits to the document 
-            if command.startswith("edit"):
+#             # if the command contains edits to the document 
+#             if command.startswith("edit"):
 
-                #tell the other clients working on this document about the changes
-                for connection in doc.author_list:
-                    if connection != websocket:
-                        await connection.send_text(command)
+#                 #tell the other clients working on this document about the changes
+#                 for connection in doc.author_list:
+#                     if connection != websocket:
+#                         await connection.send_text(command)
 
-                # edit actual document 
-                lists = []
-                operation_list = []
-                update_list = []
-                position_list = []
-                lists.append(operation_list)
-                lists.append(update_list)
-                lists.append(position_list)
-                list_num = 0
+#                 # edit actual document 
+#                 lists = []
+#                 operation_list = []
+#                 update_list = []
+#                 position_list = []
+#                 lists.append(operation_list)
+#                 lists.append(update_list)
+#                 lists.append(position_list)
+#                 list_num = 0
 
-                raw_text = command.split(" ")
-                # need to figure out what the edits are 
-                for word in raw_text:
-                    if word == "edit":
-                        continue
-                    elif word == "operation_list":
-                        list_num = 0
+#                 raw_text = command.split(" ")
+#                 # need to figure out what the edits are 
+#                 for word in raw_text:
+#                     if word == "edit":
+#                         continue
+#                     elif word == "operation_list":
+#                         list_num = 0
 
-                    elif word == "update_list":
-                        list_num = 1
+#                     elif word == "update_list":
+#                         list_num = 1
 
-                    elif word == "position_list":
-                        list_num = 2
+#                     elif word == "position_list":
+#                         list_num = 2
 
-                    else:
-                        if list_num == 2:
-                            lists[list_num].append(int(word))
-                        else:
-                            lists[list_num].append(word)
+#                     else:
+#                         if list_num == 2:
+#                             lists[list_num].append(int(word))
+#                         else:
+#                             lists[list_num].append(word)
 
-                # update the contents of the document
-                doc.update_contents(operation_list, update_list, position_list)
+#                 # update the contents of the document
+#                 doc.update_contents(operation_list, update_list, position_list)
 
-            # close the connection with that user 
-            elif command.startswith("close"): 
-                doc.author_list.remove(websocket)
+#             # close the connection with that user 
+#             elif command.startswith("close"): 
+#                 doc.author_list.remove(websocket)
 
-                #close the document fully if the last user is finished
-                if(doc.author_list.isEmpty()):
-                    server.close_doc(doc)
+#                 #close the document fully if the last user is finished
+#                 if(doc.author_list.isEmpty()):
+#                     server.close_doc(doc)
 
-                keep_going = False
+#                 keep_going = False
             
-            
 
-    except Exception as e:
-        print(f"WebSocket connection closed: {e}")
+
+#     except Exception as e:
+#         print(f"WebSocket connection closed: {e}")
 
 
 # The main method that runs the server
