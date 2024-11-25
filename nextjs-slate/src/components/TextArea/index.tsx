@@ -28,7 +28,10 @@ export default function TextArea() {
         {/* This doesn't behave as nicely as I want it to. I want it to stay the same size until there is no space left on the sides
             in which case I want it to shrink */}
             <textarea ref={yuh} 
-                    className="bg-white text-red-500 placeholder:text-[#5A5A5A] flex-initial flex-shrink-0 resize-none outline-none w-8/12 min-w-[500px] max-w-[650px] h-full mx-auto px-8 py-4 rounded-t-md"
+                    className="bg-white text-red-500 placeholder:text-[#5A5A5A]
+                               flex-initial flex-shrink-0 resize-none outline-none
+                               w-8/12 min-w-[500px] max-w-[650px] h-full mx-auto
+                               px-8 py-4 rounded-t-md"
                     placeholder="Hello:) Type here"
                     value={text}
                     onChange={handleChange}/>
