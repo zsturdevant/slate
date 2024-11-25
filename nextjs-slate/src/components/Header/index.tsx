@@ -19,7 +19,7 @@ export default function Header() {
             </div>
             <div className="bottom-part bg-[#222222] text-[#5A5A5A] rounded-md p-2">
                 {/* formatting stuff like bold and sheet */}
-                Options bar
+                Options bar for (for things like BUI)
             </div>
         </div>
         </>
