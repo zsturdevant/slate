@@ -1,0 +1,9 @@
+open:document_name
+close:
+save:
+update:insert; position value
+update:append; value
+update:delete; position
+update:replace; position value
+delete:document_name
+rename:new_name, old_name
