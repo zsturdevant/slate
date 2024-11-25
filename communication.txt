@@ -1,5 +1,5 @@
-open:document_name
-close:
+open:document_name (open the document with a given name, if that document does not exist creates a new document)
+close: (close that socument)
 save:
 update:insert; position value
 update:append; value
@@ -7,3 +7,4 @@ update:delete; position
 update:replace; position value
 delete:document_name
 rename:new_name, old_name
+document_list: (returns a list of all documents that currently exist separated by spaces e.g "hello.txt world.txt")
