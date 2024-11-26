@@ -1,10 +1,9 @@
 import os
 import asyncio
 from fastapi import FastAPI, WebSocket
+from fastapi.responses import FileResponse
 from pycrdt import Doc, Array
 import uvicorn
-from flask import Flask, send_from_directory 
-from multiprocessing import Process
 
 class Document:
     def __init__(self, author_list = [], doc_name = "Untitled", contents =[]):
@@ -57,26 +56,6 @@ class Document:
         else:
             print("attempted to perform disallowed operation")
             return False
-        # if len(update_list) != len(position_list):
-        #     print("unable to update, list and positions were of different sizes")
-        #     return False
-
-        # for i in range(len(update_list)):
-        #     operation = operation_list[i]
-        #     update = update_list[i]
-        #     position = position_list[i]
-
-        #     if operation == "insert":
-        #         self.doc["array"].insert(position, update)
-
-        #     elif operation == "append":
-        #         self.doc["array"].append(update)
-
-        #     elif operation == "delete":
-        #         del self.doc["array"][position]
-
-        #     elif operation == "replace":
-        #         self.doc["array"][position] = update
 
         return True
     
@@ -251,7 +230,6 @@ async def handle_connection(websocket: WebSocket, server: File_Cabinet):
             doc.author_list.remove(websocket)
 
 app = FastAPI()
-html_server = Flask(__name__)
 
 
 # set the document path and initalize a server
@@ -264,13 +242,19 @@ async def websocket_connection(websocket: WebSocket):
     asyncio.create_task(handle_connection(websocket, server))
 
 # the landing page if 
-@app.get('/')
-async def serve_index(data):
-    return send_from_directory('./html', "index.html")
+# @app.get('/favicon.ico')
+# async def serve_index(data):
+#     return()
+#     return send_from_directory('./html', "index.html")
 
-@app.route("/script.js")
-async def serve_client():
-    return send_from_directory(".", "nextjs-slate")
+# @app.get("/script.js")
+# async def serve_client():
+#     return send_from_directory(".", "nextjs-slate")
+
+# # the landing page if 
+# @app.get('/')
+# async def serve_index(data):
+#     return FileResponse("html/index.html")
 
 # the main method for running the server
 if __name__ == "__main__":
