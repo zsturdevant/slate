@@ -3,6 +3,7 @@
 import Header from "@/components/Header";
 import TextArea from "@/components/TextArea";
 import Link from 'next/link';
+import React, { useState } from "react";
 
 // TODO: hover animations for buttons and text boxes
 
