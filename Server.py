@@ -3,6 +3,8 @@ import asyncio
 from fastapi import FastAPI, WebSocket
 from pycrdt import Doc, Array
 import uvicorn
+from flask import Flask, send_from_directory 
+from multiprocessing import Pool
 
 class Document:
     def __init__(self, author_list = [], doc_name = "Untitled", contents =[]):
@@ -249,6 +251,8 @@ async def handle_connection(websocket: WebSocket, server: File_Cabinet):
             doc.author_list.remove(websocket)
 
 app = FastAPI()
+html_server = Flask(__name__)
+
 
 # set the document path and initalize a server
 doc_path = "./documents/"
@@ -259,8 +263,22 @@ async def websocket_connection(websocket: WebSocket):
     # Hand off the connection to a new async task
     asyncio.create_task(handle_connection(websocket, server))
 
+# the landing page if 
+@app.route('/')
+def serve_index():
+    return send_from_directory('html', "index.html")
+
+@app.route("/script.js")
+def serve_client():
+    return send_from_directory(".", "nextjs-slate")
+
+
+
+
 # the main method for running the server
 if __name__ == "__main__":
+
+    
     uvicorn.run("Server:app", host="127.0.0.1", port=8020, reload=True)
 
 

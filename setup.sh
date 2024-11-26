@@ -3,3 +3,4 @@ source myenv/bin/activate
 pip install pycrdt
 pip install fastapi
 pip install uvicorn
+pip install flask
