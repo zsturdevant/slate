@@ -1,6 +1,7 @@
 // "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 // import { useState } from 'react';
 
 
@@ -26,7 +27,7 @@ export default function Home() {
         </div>
         <button id='add_file_or_folder' className='bg-[#5A5A5A] w-24 rounded-md h-8 ml-8'>
           {/* on click should potentially ask about whether they want to create a folder or a file */}
-            Add + 
+            <Link href="TextEditor/page">Add + </Link>
         </button>
         <div className="folders text-xl">
           <p> Folders </p>
