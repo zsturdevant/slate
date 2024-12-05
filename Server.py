@@ -2,7 +2,8 @@ import os
 import asyncio
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import FileResponse
-from pycrdt import Doc, Array
+from y_py import YDoc, YText 
+# from pycrdt import Doc, Array
 import uvicorn
 
 class Document:
@@ -10,12 +11,15 @@ class Document:
 
         self.name = doc_name
         self.author_list = author_list
+        doc = YDoc()
+        contents = YText()
+        doc[YText]
 
-        #pycrdt document that contains the array with the contents of the message
-        doc = Doc()
-        contents = Array()
-        doc["array"] = contents
-        self.doc = doc
+        # #pycrdt document that contains the array with the contents of the message
+        # doc = Doc()
+        # contents = Array()
+        # doc["array"] = contents
+        # self.doc = doc
 
     def name_file(self, name):
         self.name = name
@@ -230,8 +234,6 @@ async def handle_connection(websocket: WebSocket, server: File_Cabinet):
             doc.author_list.remove(websocket)
 
 app = FastAPI()
-
-
 # set the document path and initalize a server
 doc_path = "./documents/"
 server = File_Cabinet(doc_path)
