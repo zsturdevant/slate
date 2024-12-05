@@ -2,17 +2,38 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Doc } from 'yjs';
+import { getYDoc } from '../../yjsClient';
+
 
 // TODO: Make sure that every character is showing up when handleChange is called
 export default function TextArea() {
     const doc = new Doc();
+
     const yuh = useRef(null);
+
     const [text, setText] = useState('');
+    const roomName = 'example-room';
     
-    const handleChange = (event) => {
-        console.log("\n\nBefore: " + text)
-        setText(event.target.value);
-        console.log("After: " + text)
+    useEffect(() => {
+      const { ydoc } = getYDoc(roomName);
+  
+      const sharedText = ydoc.getText('shared-text');
+      const updateText = () => setText(sharedText.toString());
+  
+      // Sync local state with shared state
+      sharedText.observe(updateText);
+      updateText();
+  
+      return () => sharedText.unobserve(updateText);
+    }, [roomName]);
+  
+
+    const handleChange = (e) => {
+      const { ydoc } = getYDoc(roomName);
+      const sharedText = ydoc.getText('shared-text');
+      sharedText.delete(0, sharedText.length);
+      sharedText.insert(0, e.target.value);
+  
       };
 
     // useEffect(() => {
