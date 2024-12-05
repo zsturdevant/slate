@@ -4,7 +4,6 @@ import Header from "@/components/Header";
 import TextArea from "@/components/TextArea";
 import Link from 'next/link';
 import React, { useState } from "react";
-import { getYDoc } from '../yjsClient';
 
 
 // TODO: hover animations for buttons and text boxes
