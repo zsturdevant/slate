@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from 'react';
+import { Doc } from 'yjs';
 
 // TODO: Make sure that every character is showing up when handleChange is called
 export default function TextArea() {
+    const doc = new Doc();
     const yuh = useRef(null);
     const [text, setText] = useState('');
     
