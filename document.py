@@ -2,7 +2,7 @@ from y_py import YDoc
 import os
 
 class Document:
-    def __init__(self, author_list = [], doc_name = "Untitled", contents =[]):
+    def __init__(self, author_list = [], doc_name = "Untitled"):
 
         self.name = doc_name
         self.author_list = author_list
