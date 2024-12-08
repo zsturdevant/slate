@@ -4,8 +4,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Doc } from 'yjs';
 import { getYDoc } from '../../yjsClient';
 
-
-// TODO: Make sure that every character is showing up when handleChange is called
 export default function TextArea() {
     const doc = new Doc();
 
