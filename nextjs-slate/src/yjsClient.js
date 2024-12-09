@@ -8,7 +8,7 @@ export function getYDoc(roomName) {
   if (!ydoc) {
     ydoc = new Y.Doc();
     provider = new WebsocketProvider(
-      'ws://localhost:1234', // Replace with your WebSocket server URL
+      'ws://localhost:8080', // Replace with your WebSocket server URL
       roomName,
       ydoc
     );
