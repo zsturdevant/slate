@@ -125,12 +125,23 @@ const fileCabinet = new FileCabinet('./documents/');
 // Keeps track of which clients are editing which documents
 const documentEditors = {}; 
 
+const isValidJSON = (str) => {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 wss.on('connection', (ws) => {
   let currentDocName = null;
 
   // Handle incoming messages from clients
   ws.on('message', (message) => {
     try {
+      // failing here
+      console.log(isValidJSON(message), message)
       const msg = JSON.parse(message);
       const { action, doc_name, author, update } = msg;
 

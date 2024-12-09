@@ -1,8 +1,18 @@
 "use client";
 
 import { FaArrowLeftLong, FaArrowRightLong, FaBars } from "react-icons/fa6";
+import { Doc } from 'yjs';
+import { getYDoc } from '../../yjsClient';
+import { useState } from "react";
+
+
 
 export default function Header() {
+    const doc = new Doc();
+
+    const [text, setText] = useState('');
+    const roomName = 'example2-room';
+
     return (
         <>
         {/* <div className='flex justify-center text-2xl py-4'> Yuh </div> */}
