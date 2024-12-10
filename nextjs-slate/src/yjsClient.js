@@ -13,7 +13,7 @@ export function getYDoc(roomName) {
       ws.send(
         JSON.stringify({
           action: 'open',
-          doc_name: roomName,
+          doc_name: roomName, // change this to reflect the title
           author: 'client-author', // Replace with the actual author name
         })
       );
@@ -47,7 +47,8 @@ export function getYDoc(roomName) {
   const updateHandler = (update) => {
     const message = JSON.stringify({
       action: 'edit',
-      update: Array.from(new Uint8Array(update)),
+      doc_name: 'untitled',
+      update: new Uint8Array(update),
       author: 'client-author', // Replace with the actual author name
     });
 

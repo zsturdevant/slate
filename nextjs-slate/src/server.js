@@ -4,18 +4,37 @@ const Y = require('yjs');
 const path = require('path');
 
 class Document {
+
+  
   constructor(author, path, doc_name = 'Untitled') {
-    this.yDoc = new Y.Doc();
-    this.doc_name = this.yDoc.getText('title');
+    this.yDoc = new Y.Doc(); // Initialize Yjs document
+    this.doc_name = this.yDoc.getText('title'); // Initialize the title (Y.Text object)
+    
+    // Set the document title (inserts it at the start)
     this.doc_name.insert(0, doc_name);
-    this.contents = this.yDoc.getText('contents');
+    
+    // Initialize contents as Y.Text (empty at the beginning)
+    this.contents = this.yDoc.getText('contents'); 
+    
+    // Log the current contents (will be empty initially)
+    console.log('Initialized document with title:', this.doc_name.toString());
     console.log('Initialized document with contents:', this.contents.toString());
+
+    // Initialize author list and path for saving the document
     this.author_list = [author];
     this.path = path;
+    // this.yDoc = new Y.Doc();
+    // this.doc_name = this.yDoc.getText('title');
+    // this.doc_name.insert(0, doc_name);
+    // this.contents = this.yDoc.getText('contents');
+    // console.log('Initialized document with contents:', this.contents.toString());
+    // this.author_list = [author];
+    // this.path = path;
   }
 
   save() {
-    const contents = this.contents.toString();
+    const contents = this.yDoc.getText('contents');
+    // const title = this.yDoc.getText('title').toString(); // i think we should be doing this eventually
     const title = this.doc_name.toString();
     try {
       const filePath = path.join(this.path, `${title}.json`);
@@ -30,9 +49,19 @@ class Document {
   // function for applying an update to the 
   applyUpdate(update) {
     try {
-      const updateArray = new Uint8Array(update);
-      Y.applyUpdate(this.yDoc, updateArray);
 
+      let updateArray;
+
+      if (typeof update === 'object' && !Array.isArray(update)) {
+        // Convert the object back into a Uint8Array
+        updateArray = new Uint8Array(Object.values(update));
+      } else {
+        // Otherwise, assume it's already a Uint8Array
+        updateArray = new Uint8Array(update);
+      }
+
+      Y.applyUpdate(this.yDoc, updateArray);
+      
       // start debugging stuff
       console.log('Document contents after update:', this.yDoc.getText('contents').toString());
       this.save();
@@ -66,28 +95,32 @@ class FileCabinet {
     if (this.open_docs.has(doc_name)) {
       return this.open_docs.get(doc_name);
     }
-
-    const file_index = this.document_list.indexOf(`${doc_name}.json`);
-
-    if (file_index === -1) {
-      const doc = new Document(author, this.doc_path, doc_name);
-      this.document_list.push(`${doc_name}.json`);
-      this.open_docs.set(doc_name, doc);
-      return doc;
-    } else {
+  
+    const filePath = path.join(this.doc_path, `${doc_name}.json`);
+    
+    if (fs.existsSync(filePath)) {
+      // If the document exists, load it from disk
       const doc = new Document(author, this.doc_path, doc_name);
       try {
-        const data = fs.readFileSync(path.join(this.doc_path, `${doc_name}.json`), 'utf8');
+        const data = fs.readFileSync(filePath, 'utf8');
         const parsedData = JSON.parse(data);
-
+  
         doc.doc_name.insert(0, parsedData.title);
         doc.contents.insert(0, parsedData.contents);
-
+        
+        //store the document in the open_docs
+        this.open_docs.set(doc_name, doc);  
         return doc;
       } catch (error) {
         console.error('Error loading document:', error);
         return null;
       }
+    } else {
+      // If the document doesn't exist, create a new one
+      const doc = new Document(author, this.doc_path, doc_name);
+      this.document_list.push(`${doc_name}.json`);
+      this.open_docs.set(doc_name, doc);
+      return doc;
     }
   }
 }
@@ -124,15 +157,19 @@ wss.on('connection', (ws) => {
             contents: doc.contents.toString(),
           })
         );
-      } else if (action === 'edit' && currentDocName) {
-        const doc = fileCabinet.open_file(author, currentDocName);
+      // } else if (action === 'edit' && currentDocName) {
+      } else if (action === 'edit') {
+        const doc = fileCabinet.open_file(author, doc_name);
         doc.applyUpdate(update);
 
-        if (documentEditors[currentDocName]) {
-          documentEditors[currentDocName].forEach((client) => {
+        // if (documentEditors[currentDocName]) {
+        if (documentEditors[doc_name]) {
+
+          // documentEditors[currentDocName].forEach((client) => {
+          documentEditors[doc_name].forEach((client) => {
             if (client !== ws && client.readyState === WebSocket.OPEN) {
               client.send(
-                JSON.stringify({ action: 'update', update, doc_name: currentDocName })
+                JSON.stringify({ action: 'update', update, doc_name: doc_name })
               );
             }
           });
