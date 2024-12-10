@@ -4,12 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { Doc } from 'yjs';
 import { getYDoc } from '../../yjsClient';
 
+const Y = require('yjs');
+
 export default function TextArea() {
-    const doc = new Doc();
+    const doc = new Y.Doc();
 
     const [text, setText] = useState('');
     const roomName = 'example-room';
-    
+  
     useEffect(() => {
       // ydoc is a yjs Doc object
       const { ydoc } = getYDoc(roomName);

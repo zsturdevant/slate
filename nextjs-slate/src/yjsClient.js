@@ -27,18 +27,18 @@ export function getYDoc(roomName) {
       console.log('Received message:', message.data);
       const msg = JSON.parse(message.data);
       // get the action and see if it is edit
-      if (msg.action === 'edit' && msg.update) {
+      if (msg.action === 'update' && msg.update) {
         // if so, implement the update that was sent if it exists
-        Y.applyUpdate(ydoc, new Uint8Array(msg.update));
+        ydoc.applyUpdate(ydoc, update);
       }
     });
 
-    provider.ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.action === 'documentOpened') {
-        ydoc.getText('contents').insert(0, msg.contents);
-      }
-    };
+    // provider.ws.onmessage = (event) => {
+    //   const msg = JSON.parse(event.data);
+    //   if (msg.action === 'documentOpened') {
+    //     ydoc.getText('contents').insert(0, msg.contents);
+    //   }
+    // };
   }
 
   const isValidJSON = (str) => {
@@ -50,12 +50,22 @@ export function getYDoc(roomName) {
     }
   };
   
-  const updateHandler = (update, origin) => {
-    const message = JSON.stringify({
-      action: 'edit',
-      update: Array.from(update),
-    })
-    console.log(isValidJSON(message), message)
+  const updateHandler = (update) => {
+    const message = JSON.parse(update);
+    const { action, update } = message;
+    ydoc.applyUpdate(update); 
+    
+    
+    
+    
+    
+    // const message = JSON.stringify({
+    //   action: 'edit',
+    //   update: Array.from(update),
+    //   doc_name: 'untitled',// somehow get the name of the document
+    //   author: 'yuh'
+    // })
+    // console.log(isValidJSON(message), message)
     // if (!message.includes("<")) {
     //   provider.ws.send(message);
     // }
