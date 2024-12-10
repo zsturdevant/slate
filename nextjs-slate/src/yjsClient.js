@@ -1,80 +1,66 @@
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
 
 let ydoc;
-let provider;
+let ws;
 
 export function getYDoc(roomName) {
   if (!ydoc) {
-    // make a new document
     ydoc = new Y.Doc();
+    ws = new WebSocket('ws://localhost:8080');
 
-    // define where you are getting contents from (serevr ip)
-    provider = new WebsocketProvider(
-      'ws://localhost:8080', // Replace with your WebSocket server URL
-      'example-room',
-      ydoc
-    );
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+      ws.send(
+        JSON.stringify({
+          action: 'open',
+          doc_name: roomName,
+          author: 'client-author', // Replace with the actual author name
+        })
+      );
+    };
 
-    // log the connection status
-    provider.on('status', ({ status }) => {
-      console.log(`WebSocket connection status: ${status}`);
-    });
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
 
-    // when you get a message from provider
-    provider.on('message', (message) => {
-      // parse it
-      console.log('Received message:', message.data);
-      const msg = JSON.parse(message.data);
-      // get the action and see if it is edit
-      if (msg.action === 'update' && msg.update) {
-        // if so, implement the update that was sent if it exists
-        ydoc.applyUpdate(ydoc, update);
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        console.log('Received message:', msg);
+
+        if (msg.action === 'update' && msg.update) {
+          const update = new Uint8Array(msg.update);
+          Y.applyUpdate(ydoc, update);
+        } else {
+          console.warn('Unrecognized message format:', msg);
+        }
+      } catch (err) {
+        console.error('Error processing message:', err);
       }
-    });
-
-    // provider.ws.onmessage = (event) => {
-    //   const msg = JSON.parse(event.data);
-    //   if (msg.action === 'documentOpened') {
-    //     ydoc.getText('contents').insert(0, msg.contents);
-    //   }
-    // };
+    };
   }
 
-  const isValidJSON = (str) => {
-    try {
-      JSON.parse(str);
-      return true;
-    } catch (e) {
-      return false;
+  const updateHandler = (update) => {
+    const message = JSON.stringify({
+      action: 'edit',
+      update: Array.from(new Uint8Array(update)),
+      author: 'client-author', // Replace with the actual author name
+    });
+
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(message);
     }
   };
-  
-  const updateHandler = (update) => {
-    const message = JSON.parse(update);
-    const { action, update } = message;
-    ydoc.applyUpdate(update); 
-    
-    
-    
-    
-    
-    // const message = JSON.stringify({
-    //   action: 'edit',
-    //   update: Array.from(update),
-    //   doc_name: 'untitled',// somehow get the name of the document
-    //   author: 'yuh'
-    // })
-    // console.log(isValidJSON(message), message)
-    // if (!message.includes("<")) {
-    //   provider.ws.send(message);
-    // }
-  };
-  
+
   ydoc.on('update', updateHandler);
-  
-  return { ydoc, provider };
+
+  return { ydoc, ws };
 }
+
 
 
 
