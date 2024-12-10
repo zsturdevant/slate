@@ -172,7 +172,7 @@ wss.on('connection', (ws) => {
         if (documentEditors[currentDocName]) {
           documentEditors[currentDocName].forEach((client) => {
             if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({ action: 'edit', update, doc_name: currentDocName }));
+              client.send(JSON.stringify({ action: 'update', update, doc_name: currentDocName }));
             }
           });
         }
