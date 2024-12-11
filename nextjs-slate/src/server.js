@@ -60,6 +60,8 @@ class Document {
         updateArray = new Uint8Array(update);
       }
 
+      console.log('Received update action:', update);
+
       Y.applyUpdate(this.yDoc, updateArray);
       
       // start debugging stuff

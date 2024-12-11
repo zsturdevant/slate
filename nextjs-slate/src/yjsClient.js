@@ -42,13 +42,15 @@ export function getYDoc(roomName) {
         console.error('Error processing message:', err);
       }
     };
-  }
+  };
 
   const updateHandler = (update) => {
+    console.log('Local update triggered:', Array.from(new Uint8Array(update)));
+
     const message = JSON.stringify({
       action: 'edit',
       doc_name: 'untitled',
-      update: new Uint8Array(update),
+      update: Array.from(new Uint8Array(update)),
       author: 'client-author', // Replace with the actual author name
     });
 
@@ -58,6 +60,7 @@ export function getYDoc(roomName) {
   };
 
   ydoc.on('update', updateHandler);
+  
 
   return { ydoc, ws };
 }
