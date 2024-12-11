@@ -14,7 +14,7 @@ export default function TextArea() {
   
     useEffect(() => {
       // ydoc is a yjs Doc object
-      const { ydoc } = getYDoc(docname);
+      const { ydoc } = getYDoc();
       // get the text from ydoc object
       const sharedText = ydoc.getText('shared-text');
       // make this text the state that we see on screen

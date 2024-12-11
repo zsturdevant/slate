@@ -1,9 +1,10 @@
 import * as Y from 'yjs';
 
 let ydoc;
+let document_id = -1;
 let ws;
 
-export function getYDoc(roomName) {
+export function getYDoc() {
   if (!ydoc) {
     ydoc = new Y.Doc();
     ws = new WebSocket('ws://localhost:8080');
@@ -13,8 +14,7 @@ export function getYDoc(roomName) {
       ws.send(
         JSON.stringify({
           action: 'open',
-          doc_name: roomName, // change this to reflect the title
-          author: 'client-author', // Replace with the actual author name
+          doc_name: "untitled" // change this to reflect the title please
         })
       );
     };
@@ -35,10 +35,24 @@ export function getYDoc(roomName) {
         if (msg.action === 'update' && msg.update) {
           const update = new Uint8Array(msg.update);
           Y.applyUpdate(ydoc, update);
-        } else if (msg.action === 'documentOpened') {
-          // when the document opens, we want to retrieve the contents
-          // and trigger an update?
-          ydoc.
+        } //else if (msg.action === 'documentOpened') {
+
+         else if (msg.action === 'documentOpened') {
+            const { doc_id, title, contents } = msg;
+            document_id = doc_id;
+          
+            const yText = ydoc.getText('contents'); 
+            yText.delete(0, yText.length); // Clear existing content
+            yText.insert(0, contents); // Insert new content
+        
+
+
+          // const { doc_id, title, contents } = msg;
+          // // when the document opens, we want to retrieve the contents
+          // // and trigger an update?
+          // document_id = doc_id;
+          // const yText = ydoc.getText('contents'); 
+          // yText.insert(0,contents);
         } else {
           console.warn('Unrecognized message format:', msg);
         }
@@ -48,17 +62,17 @@ export function getYDoc(roomName) {
     };
   };
 
-  // this is for updating when the user is typing
+
   const updateHandler = (update) => {
     console.log('Local update triggered:', Array.from(new Uint8Array(update)));
-
+  
     const message = JSON.stringify({
       action: 'edit',
       doc_name: 'untitled',
-      update: Array.from(new Uint8Array(update)),
-      author: 'client-author', // Replace with the actual author name
+      doc_id: document_id,
+      update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
     });
-
+  
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(message);
     }
@@ -69,7 +83,3 @@ export function getYDoc(roomName) {
 
   return { ydoc, ws };
 }
-
-
-
-
