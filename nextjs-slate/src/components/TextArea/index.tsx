@@ -1,22 +1,20 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Doc } from 'yjs';
+import * as Y from 'yjs';
 import { getYDoc } from '../../yjsClient';
 
-const Y = require('yjs');
+// call getYDoc() outside component to ensure a single shared instance
+const { ydoc } = getYDoc();
 
 export default function TextArea() {
-    const doc = new Y.Doc();
-
     const [text, setText] = useState('');
     const [docname, setDocname] = useState('');
   
     useEffect(() => {
-      // ydoc is a yjs Doc object
-      const { ydoc } = getYDoc();
-      // get the text from ydoc object
+      // get the shared text from the global ydoc instance
       const sharedText = ydoc.getText('shared-text');
+      
       // make this text the state that we see on screen
       const updateText = () => setText(sharedText.toString());
   
@@ -26,11 +24,13 @@ export default function TextArea() {
   
       return () => sharedText.unobserve(updateText);
     }, [docname]);
-  
 
     const handleChange = (e) => {
-      const { ydoc } = getYDoc(docname);
+      // const { ydoc } = getYDoc(docname);
+
+      // get the shared text from the global ydoc instance
       const sharedText = ydoc.getText('shared-text');
+
       sharedText.delete(0, sharedText.length);
       sharedText.insert(0, e.target.value);
   
