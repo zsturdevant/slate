@@ -10,11 +10,11 @@ export default function TextArea() {
     const doc = new Y.Doc();
 
     const [text, setText] = useState('');
-    const roomName = 'example-room';
+    const [docname, setDocname] = useState('');
   
     useEffect(() => {
       // ydoc is a yjs Doc object
-      const { ydoc } = getYDoc(roomName);
+      const { ydoc } = getYDoc(docname);
       // get the text from ydoc object
       const sharedText = ydoc.getText('shared-text');
       // make this text the state that we see on screen
@@ -25,11 +25,11 @@ export default function TextArea() {
       updateText();
   
       return () => sharedText.unobserve(updateText);
-    }, [roomName]);
+    }, [docname]);
   
 
     const handleChange = (e) => {
-      const { ydoc } = getYDoc(roomName);
+      const { ydoc } = getYDoc(docname);
       const sharedText = ydoc.getText('shared-text');
       sharedText.delete(0, sharedText.length);
       sharedText.insert(0, e.target.value);

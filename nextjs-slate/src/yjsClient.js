@@ -35,6 +35,10 @@ export function getYDoc(roomName) {
         if (msg.action === 'update' && msg.update) {
           const update = new Uint8Array(msg.update);
           Y.applyUpdate(ydoc, update);
+        } else if (msg.action === 'documentOpened') {
+          // when the document opens, we want to retrieve the contents
+          // and trigger an update?
+          ydoc.
         } else {
           console.warn('Unrecognized message format:', msg);
         }
@@ -44,6 +48,7 @@ export function getYDoc(roomName) {
     };
   };
 
+  // this is for updating when the user is typing
   const updateHandler = (update) => {
     console.log('Local update triggered:', Array.from(new Uint8Array(update)));
 
