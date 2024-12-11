@@ -3,83 +3,6 @@ const fs = require('fs');
 const Y = require('yjs');
 const path = require('path');
 
-// class Document {
-
-  
-//   // constructor(author, path, doc_id, doc_name = 'Untitled') {
-//   constructor(path, doc_id, doc_name = 'Untitled') {
-//     this.yDoc = new Y.Doc(); // Initialize Yjs document
-//     this.doc_name = this.yDoc.getText('title'); // Initialize the title (Y.Text object)
-  
-//     // Unique doc id
-//     this.doc_id = doc_id;
-    
-//     // Set the document title (only insert the name once)
-//     if (this.doc_name.length === 0) {
-//       this.doc_name.insert(0, doc_name); // Set the title only if it's not already set
-//     }
-  
-//     // Initialize contents as Y.Text (empty at the beginning)
-//     this.contents = this.yDoc.getText('shared-text'); 
-  
-//     // Log the current contents (will be empty initially)
-//     console.log('Initialized document with title:', this.doc_name.toString());
-//     console.log('Initialized document with contents:', this.contents.toString());
-  
-//     // Initialize author list and path for saving the document
-//     this.path = path;
-//   }
-
-//   // get the doc id
-//   get_doc_id() {
-//     return this.doc_id;
-//   }
-
-//   save() {
-//     const contents = this.contents.toString(); // Convert to string
-//     const title = this.doc_name.toString();
-  
-//     try {
-//       const filePath = path.join(this.path, `${title}.json`);
-//       fs.writeFileSync(filePath, JSON.stringify({ title, contents }), 'utf8');
-//       return true;
-//     } catch (error) {
-//       console.error('Error saving the file:', error);
-//       return false;
-//     }
-//   }
-
-//   update_doc(update) {
-//     try {
-//       // Convert update to Uint8Array if needed
-//       const updateArray =
-//         update instanceof Uint8Array
-//           ? update
-//           : new Uint8Array(Object.values(update));
-  
-//       console.log('Received update action:', updateArray);
-//       this.yDoc
-//       Y.logUpdate(updateArray);
-  
-//       // Apply the update to the Y.Doc
-//       Y.applyUpdate(this.yDoc, updateArray);
-  
-//       // Log the updated contents for debugging
-//       console.log('Document contents after update:', this.contents.toString());
-  
-//       // Save the document after applying the update
-//       this.save();
-//     } catch (error) {
-//       console.error('Error applying update:', error);
-//     }
-//   }
-
-//   name_file(new_name) {
-//     this.doc_name.delete(0, this.doc_name.length);
-//     this.doc_name.insert(0, new_name);
-//   }
-// }
-
 class Document {
   constructor(path, doc_id, doc_name = 'Untitled') {
     this.yDoc = new Y.Doc(); // Initialize Yjs document
@@ -90,7 +13,7 @@ class Document {
     
     // Set the document title (only insert the name once if it's empty)
     if (this.doc_name.toString().length === 0) {
-      this.doc_name.insert(0, doc_name); // Set the title only if it's not already set
+      this.doc_name.insert(0, doc_name); 
     }
   
     // Initialize contents as Y.Text (empty at the beginning)
