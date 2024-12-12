@@ -55,7 +55,6 @@ class Document {
           ? update
           : new Uint8Array(Object.values(update));
   
-      console.log('Received update action:', updateArray);
       //this.yDoc
       Y.logUpdate(updateArray);
   
@@ -77,25 +76,25 @@ class Document {
     this.doc_name.insert(0, new_name);
   }
 
-  // broadcast update to connected clients
-  broadcast_update(update) {
-    const clients = fileCabinet.get_connected_clients(this.doc_id);
-    if (clients) {
-      clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(
-            JSON.stringify({
-              action: 'update',
-              update: Array.from(update), // Ensure the update is sent properly
-              doc_id: this.doc_id,
-            })
-          );
-        }
-      });
-    } else {
-      console.warn('No connected clients found for document:', this.doc_id);
-    }
-  }
+  // // broadcast update to connected clients
+  // broadcast_update(update) {
+  //   const clients = fileCabinet.get_connected_clients(this.doc_id);
+  //   if (clients) {
+  //     clients.forEach((client) => {
+  //       if (client.readyState === WebSocket.OPEN) {
+  //         client.send(
+  //           JSON.stringify({
+  //             action: 'update',
+  //             update: Array.from(update), // Ensure the update is sent properly
+  //             doc_id: this.doc_id,
+  //           })
+  //         );
+  //       }
+  //     });
+  //   } else {
+  //     console.warn('No connected clients found for document:', this.doc_id);
+  //   }
+  // }
 }
 
 class FileCabinet {
@@ -126,6 +125,7 @@ class FileCabinet {
 
     // open existing document from disk or create a new one
     const doc = new Document(this.doc_path, this.next_id, doc_name);
+    doc.name_file(doc_name);
     doc_id = this.next_id;
     this.next_id += 1;
 
@@ -166,6 +166,27 @@ class FileCabinet {
 
   get_connected_clients(doc_id) {
     return documentEditors[doc_id];
+  }
+
+  // broadcast update to connected clients
+  broadcast_update(ws, doc, update) {
+    const clients = this.get_connected_clients(doc.get_doc_id());
+    if (clients) {
+      clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+        // if (client.readyState === WebSocket.OPEN && client != ws) {
+          client.send(
+            JSON.stringify({
+              action: 'update',
+              update: Array.from(update), // Ensure the update is sent properly
+              doc_id: this.doc_id,
+            })
+          );
+        }
+      });
+    } else {
+      console.warn('No connected clients found for document:', this.doc_id);
+    }
   }
 }
 
@@ -208,6 +229,7 @@ wss.on('connection', (ws) => {
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
         if (doc) {
           doc.update_doc(update);
+          fileCabinet.broadcast_update(ws, doc, update);
 
           /* broadcast update to other clients
           if (documentEditors[doc_id]) {
