@@ -14,7 +14,7 @@ export function getYDoc() {
       ws.send(
         JSON.stringify({
           action: 'open',
-          doc_name: "untitled" // change this to reflect the title please
+          doc_name: "untitled" // change this to reflect the title
         })
       );
     };
@@ -35,24 +35,21 @@ export function getYDoc() {
         if (msg.action === 'update' && msg.update) {
           const update = new Uint8Array(msg.update);
           Y.applyUpdate(ydoc, update);
-        } //else if (msg.action === 'documentOpened') {
-
-         else if (msg.action === 'documentOpened') {
+        } else if (msg.action === 'documentOpened') {
             const { doc_id, title, contents } = msg;
             document_id = doc_id;
           
-            const yText = ydoc.getText('contents'); 
+            const yText = ydoc.getText('shared-text'); //instead of 'contents' ?
             yText.delete(0, yText.length); // Clear existing content
             yText.insert(0, contents); // Insert new content
-        
-
-
+      
           // const { doc_id, title, contents } = msg;
           // // when the document opens, we want to retrieve the contents
           // // and trigger an update?
           // document_id = doc_id;
           // const yText = ydoc.getText('contents'); 
           // yText.insert(0,contents);
+            console.log('Document initiliazed with server contents:', contents);
         } else {
           console.warn('Unrecognized message format:', msg);
         }
@@ -62,13 +59,12 @@ export function getYDoc() {
     };
   };
 
-
   const updateHandler = (update) => {
     console.log('Local update triggered:', Array.from(new Uint8Array(update)));
   
     const message = JSON.stringify({
       action: 'edit',
-      doc_name: 'untitled',
+      doc_name: 'untitled', // replace with actual document name
       doc_id: document_id,
       update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
     });
@@ -79,7 +75,6 @@ export function getYDoc() {
   };
 
   ydoc.on('update', updateHandler);
-  
 
   return { ydoc, ws };
 }

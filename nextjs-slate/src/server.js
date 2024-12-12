@@ -46,6 +46,7 @@ class Document {
     }
   }
 
+  // Apply update to Y.Doc and to other connected clients
   update_doc(update) {
     try {
       // Convert update to Uint8Array if needed
@@ -55,7 +56,7 @@ class Document {
           : new Uint8Array(Object.values(update));
   
       console.log('Received update action:', updateArray);
-      this.yDoc
+      //this.yDoc
       Y.logUpdate(updateArray);
   
       // Apply the update to the Y.Doc
@@ -75,13 +76,34 @@ class Document {
     this.doc_name.delete(0, this.doc_name.length);
     this.doc_name.insert(0, new_name);
   }
+
+  // broadcast update to connected clients
+  broadcast_update(update) {
+    const clients = fileCabinet.get_connected_clients(this.doc_id);
+    if (clients) {
+      clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              action: 'update',
+              update: Array.from(update), // Ensure the update is sent properly
+              doc_id: this.doc_id,
+            })
+          );
+        }
+      });
+    } else {
+      console.warn('No connected clients found for document:', this.doc_id);
+    }
+  }
 }
 
 class FileCabinet {
   constructor(doc_path) {
     this.doc_path = doc_path;
     this.document_list = [];
-    this.open_docs = new Map();
+    this.open_docs = new Map(); // Map<doc_id, Document>
+    this.doc_name_to_id = new Map(); //Map<doc_name, doc_id>
     this.next_id = 0;
 
     try {
@@ -91,17 +113,23 @@ class FileCabinet {
     }
   }
 
-  // open_file(author, doc_name) {
+  // Open or create a document by its name
   open_file(doc_name) {
-  
     const filePath = path.join(this.doc_path, `${doc_name}.json`);
+    let doc_id;
     
-    if (fs.existsSync(filePath)) {
-      // If the document exists, load it from disk
-      // const doc = new Document(author, this.doc_path, this.next_id, doc_name);
-      const doc = new Document(this.doc_path, this.next_id, doc_name);
-      this.next_id = this.next_id + 1;
+    // Check if the document is already open
+    if (this.doc_name_to_id.has(doc_name)) {
+      doc_id = this.doc_name_to_id.get(doc_name);
+      return this.open_docs.get(doc_id); // return the existing document instance
+    }
 
+    // open existing document from disk or create a new one
+    const doc = new Document(this.doc_path, this.next_id, doc_name);
+    doc_id = this.next_id;
+    this.next_id += 1;
+
+    if (fs.existsSync(filePath)) {
       try {
         const data = fs.readFileSync(filePath, 'utf8');
         const parsedData = JSON.parse(data);
@@ -114,29 +142,30 @@ class FileCabinet {
         return doc;
       } catch (error) {
         console.error('Error loading document:', error);
-        return null;
       }
     } else {
-      // If the document doesn't exist, create a new one
-      // const doc = new Document(author, this.doc_path, this.next_id, doc_name);
-      const doc = new Document(this.doc_path, this.next_id, doc_name);
-      this.next_id = this.next_id + 1;
-      doc.save()
-      this.document_list.push(`${doc_name}`);
-      this.open_docs.set(doc_id, doc);
-      return doc;
+      doc.save() // save new document to disk
     }
+
+    // register the document
+    //this.document_list.push(`${doc_name}`);
+    //this.open_docs.set(doc_id, doc);
+    this.doc_name_to_id.set(doc_name, doc_id);
+    this.open_docs.set(doc_id, doc);
+    return doc;
   }
 
   // opens a file if it exists, if it does not opens a new file
-  // get_open_file(author, doc_name, doc_id) {
   get_open_file(doc_name, doc_id) {
     if (this.open_docs.has(doc_name)) {
       return this.open_docs.get(doc_id);
     } else {
-      // return this.open_file(author, doc_name)
       return this.open_file(doc_name);
     }
+  }
+
+  get_connected_clients(doc_id) {
+    return documentEditors[doc_id];
   }
 }
 
@@ -168,7 +197,7 @@ wss.on('connection', (ws) => {
         ws.send(
           JSON.stringify({
             action: 'documentOpened',
-            doc_id: doc.doc_id,
+            doc_id: current_doc_id,
             title: doc.doc_name.toString(),
             contents: doc.contents.toString(),
           })
@@ -177,9 +206,10 @@ wss.on('connection', (ws) => {
       } else if (action === 'edit') {
         // const doc = fileCabinet.get_open_file(author, doc_name, doc_id);
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
-        doc.update_doc(update);
+        if (doc) {
+          doc.update_doc(update);
 
-        // if (documentEditors[currentDocName]) {
+          /* broadcast update to other clients
           if (documentEditors[doc_id]) {
             documentEditors[doc_id].forEach((client) => {
               if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -192,7 +222,10 @@ wss.on('connection', (ws) => {
                 );
               }
             });
-          }
+          }*/
+        } else {
+          console.warn(`Document with ID ${doc_id} not found`);
+        }
       }
     } catch (error) {
       console.error('Error processing message:', error);
@@ -212,17 +245,22 @@ wss.on('connection', (ws) => {
         // Save the document if no editors are left
         if (editors.size === 0) {
           console.log(`No editors left for ${current_doc_id}. Saving document.`);
-          const doc = fileCabinet.get_open_file(this.open_docs.get(current_doc_id).doc_name, current_doc_id);
-          if (doc && doc.save()) {
+          //const doc = fileCabinet.get_open_file(this.open_docs.get(current_doc_id).doc_name, current_doc_id);
+          const doc = fileCabinet.open_docs.get(current_doc_id);
+          /*if (doc && doc.save()) {
             console.log(`Document "${current_doc_id}" saved successfully.`);
           } else {
             console.error(`Failed to save document: ${current_doc_id}`);
+          }
+            */
+          if (doc) {
+            doc.save();
+            console.log(`Document "${doc.doc_name}" saved successfully.`);
           }
         }
       }
     }
   });
-
 });
 
 console.log('Server listening on port 8080');
