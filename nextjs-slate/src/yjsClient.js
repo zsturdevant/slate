@@ -45,14 +45,12 @@ export function getYDoc() {
           Y.applyUpdate(ydoc, update);
           
         } else if (msg.action === 'documentOpened') {
-            const { doc_id, title, contents } = msg;
-            document_id = doc_id;
-          
-            const yText = ydoc.getText('shared-text'); //instead of 'contents' ?
-            yText.delete(0, yText.length); // Clear existing content
-            yText.insert(0, contents); // Insert new content
+          document_id = msg.doc_id
+          const update = new Uint8Array(msg.update);
+          last_update_recieved = update;
+          Y.applyUpdate(ydoc, update);
+          document_id = msg.doc_id;
       
-            console.log('Document initiliazed with server contents:', contents);
         } else {
           console.warn('Unrecognized message format:', msg);
         }
@@ -67,7 +65,9 @@ export function getYDoc() {
     if (last_update_recieved == next_update) {
       console.log('stopped some bullshit');
     } else {
-      console.log('Local update triggered:', Array.from(new Uint8Array(update)));
+      // console.log('Local update triggered:', Array.from(new Uint8Array(update)));
+      Y.logUpdate(next_update);
+
       const message = JSON.stringify({
         action: 'edit',
         doc_name: 'untitled', // replace with actual document name

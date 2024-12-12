@@ -17,7 +17,7 @@ class Document {
   
     // Log the current contents (will be empty initially)
     console.log('Initialized document with title:', this.doc_name.toString());
-    console.log('Initialized document with contents:', this.contents.toString());
+    
   
     // Initialize author list and path for saving the document
     this.path = path;
@@ -144,6 +144,7 @@ class FileCabinet {
   
         doc.name_file(parsedData.title);
         doc.contents.insert(0, parsedData.contents);
+        console.log('Initialized document with contents:', doc.contents.toString());
         
         //store the document in the open_docs
         this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
@@ -217,7 +218,6 @@ wss.on('connection', (ws) => {
 
         const doc = fileCabinet.open_file(doc_name);
         current_doc_id = doc.get_doc_id();
-        con
         console.log('Current doc_id:', current_doc_id);
 
         if (!documentEditors[current_doc_id]) {
@@ -225,12 +225,12 @@ wss.on('connection', (ws) => {
         }
         documentEditors[current_doc_id].add(ws);
 
+        const update = Y.encodeStateAsUpdate(doc.yDoc); // Encode the full state of the document
         ws.send(
           JSON.stringify({
             action: 'documentOpened',
-            doc_id: current_doc_id,
-            title: doc.doc_name.toString(),
-            contents: doc.contents.toString(),
+            update: Array.from(update), // Convert Uint8Array to an Array
+            doc_id: current_doc_id,     // Include document identifier
           })
         );
 
