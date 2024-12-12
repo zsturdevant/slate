@@ -8,7 +8,6 @@ import Link from 'next/link';
 export default function Home() {
   // const [num,setNum] = useState('');
   const files = ['file 1', 'file 2', 'file 3', 'file 4'];
-  const folders = ['Folder 1', 'Folder 2', 'Folder 3', 'Folder 4', 'Folder 5', 'Folder 6'];
 
 
   return (
@@ -29,13 +28,6 @@ export default function Home() {
           {/* on click should potentially ask about whether they want to create a folder or a file */}
             <Link href="TextEditor">Add + </Link>
         </button>
-        <div className="folders text-xl">
-          <p> Folders </p>
-          {folders.map((folder, index) => (
-            <div key={index} className='ml-4 text-lg'>{folder}</div>
-          ))}
-
-        </div>
         <div className="files text-xl">
           <p> Files </p>
           {files.map((file, index) => (

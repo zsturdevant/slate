@@ -192,6 +192,7 @@ wss.on('connection', (ws) => {
 
         const doc = fileCabinet.open_file(doc_name);
         current_doc_id = doc.get_doc_id();
+        con
         console.log('Current doc_id:', current_doc_id);
 
         if (!documentEditors[current_doc_id]) {
