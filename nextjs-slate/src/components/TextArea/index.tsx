@@ -36,6 +36,16 @@ export default function TextArea() {
   
       };
     
+    // just edit where the curser is?
+    // const handleChange = (e) => {
+    //   const { ydoc } = getYDoc();
+    //   const sharedText = ydoc.getText('shared-text');
+    //   const cursorPos = e.target.selectionStart;
+  
+    //   sharedText.delete(cursorPos, e.target.value.length);
+    //   sharedText.insert(cursorPos, e.target.value);
+    // };
+    
     return (
         <div className="flex-grow flex justify-center items-center px-60 bg-[#F9FBFD] dark:bg-[#1E202F]">
         {/* TODO: Dynamically resize depending on how much text the user has already written. This will be non paginated for now */}
