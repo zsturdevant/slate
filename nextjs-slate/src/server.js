@@ -172,6 +172,7 @@ class FileCabinet {
     }
   }
 
+  // find all the clients that are connected
   get_connected_clients(doc_id) {
     return documentEditors[doc_id];
   }
@@ -181,12 +182,11 @@ class FileCabinet {
     const clients = this.get_connected_clients(doc.get_doc_id());
     if (clients) {
       clients.forEach((client) => {
-        // if (client.readyState === WebSocket.OPEN) {
         if (client.readyState === WebSocket.OPEN && client != ws) {
           client.send(
             JSON.stringify({
               action: 'update',
-              update: Array.from(update), // Ensure the update is sent properly
+              update: Array.from(update),
               doc_id: this.doc_id,
             })
           );
