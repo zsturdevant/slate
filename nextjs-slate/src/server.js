@@ -247,11 +247,16 @@ wss.on('connection', (ws) => {
       // send a list of all documents to the client
       } else if (action === 'list_files') {
         const docs = fileCabinet.get_docs();
+        let new_docs = []
+        for (filename of docs) {
+          filename = filename.slice(0, filename.length - 5)
+          new_docs.push(filename)
+        }
         if (docs) {
           ws.send(
             JSON.stringify({
               action: 'doc_list',
-              update: Array.from(docs),
+              update: Array.from(new_docs),
             })
           );
           

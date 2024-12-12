@@ -9,7 +9,7 @@ let ws;
 // and everything explodes.
 let last_update_recieved;
 
-export function getYDoc() {
+export function getYDoc(docname) {
   if (!ydoc) {
     ydoc = new Y.Doc();
     ws = new WebSocket('ws://localhost:8080');
@@ -19,9 +19,7 @@ export function getYDoc() {
       ws.send(
         JSON.stringify({
           action: 'open',
-
-          // change this to reflect the title
-          doc_name: "untitled" 
+          doc_name: docname
         })
       );
     };
@@ -70,7 +68,7 @@ export function getYDoc() {
 
       const message = JSON.stringify({
         action: 'edit',
-        doc_name: 'untitled', // replace with actual document name
+        doc_name: docname, // replace with actual document name
         doc_id: document_id,
         update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
       });
@@ -86,3 +84,48 @@ export function getYDoc() {
 
   return { ydoc, ws };
 }
+
+export function getDocList() {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket('ws://localhost:8080');
+    let docs = [];
+
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+      ws.send(
+        JSON.stringify({
+          action: 'list_files',
+        })
+      );
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      reject(error);  // Reject the promise if there's an error
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        console.log('Received message:', msg);
+
+        if (msg.action === 'doc_list' && msg.update) {
+          // Ensure msg.update is an array or plain object
+          docs = Array.isArray(msg.update) ? msg.update : Object.values(msg.update);
+          resolve(docs);  // Resolve the promise with docs
+        } else {
+          console.warn('Unrecognized message format:', msg);
+        }
+      } catch (err) {
+        console.error('Error processing message:', err);
+        reject(err);  // Reject the promise in case of an error
+      }
+    };
+  });
+}
+
+
