@@ -35,6 +35,7 @@ export function getYDoc() {
         if (msg.action === 'update' && msg.update) {
           const update = new Uint8Array(msg.update);
           Y.applyUpdate(ydoc, update);
+          
         } else if (msg.action === 'documentOpened') {
             const { doc_id, title, contents } = msg;
             document_id = doc_id;
