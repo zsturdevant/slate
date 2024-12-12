@@ -130,9 +130,9 @@ class FileCabinet {
     }
 
     // open existing document from disk or create a new one
-    const doc = new Document(this.doc_path, toString(this.next_id), doc_name);
+    const doc = new Document(this.doc_path, this.next_id.toString(), doc_name);
 
-    doc_id = toString(this.next_id);
+    doc_id = this.next_id.toString();
     this.next_id += 1;
 
     // if this doc has been accessed before but is not currently open
@@ -181,8 +181,8 @@ class FileCabinet {
     const clients = this.get_connected_clients(doc.get_doc_id());
     if (clients) {
       clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-        // if (client.readyState === WebSocket.OPEN && client != ws) {
+        // if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN && client != ws) {
           client.send(
             JSON.stringify({
               action: 'update',

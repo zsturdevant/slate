@@ -19,7 +19,9 @@ export function getYDoc() {
       ws.send(
         JSON.stringify({
           action: 'open',
-          doc_name: "untitled" // change this to reflect the title
+
+          // change this to reflect the title
+          doc_name: "untitled" 
         })
       );
     };
@@ -49,12 +51,6 @@ export function getYDoc() {
             yText.delete(0, yText.length); // Clear existing content
             yText.insert(0, contents); // Insert new content
       
-          // const { doc_id, title, contents } = msg;
-          // // when the document opens, we want to retrieve the contents
-          // // and trigger an update?
-          // document_id = doc_id;
-          // const yText = ydoc.getText('contents'); 
-          // yText.insert(0,contents);
             console.log('Document initiliazed with server contents:', contents);
         } else {
           console.warn('Unrecognized message format:', msg);
