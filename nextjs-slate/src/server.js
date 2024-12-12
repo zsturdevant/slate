@@ -6,7 +6,7 @@ const path = require('path');
 class Document {
   constructor(path, doc_id, doc_name = 'Untitled') {
     this.yDoc = new Y.Doc(); // Initialize Yjs document
-    this.doc_name = this.yDoc.getText('title'); // Initialize the title (Y.Text object)
+    this.doc_name = this.yDoc.getText('title'); // Initialize the title
 
     // Unique doc id
     this.doc_id = doc_id;
@@ -32,6 +32,7 @@ class Document {
     return this.doc_id;
   }
 
+  // save the document if we want to
   save() {
     const contents = this.contents.toString(); // Convert to string
     const title = this.doc_name.toString();
@@ -65,7 +66,7 @@ class Document {
       console.log('Document contents after update:', this.contents.toString());
   
       // Save the document after applying the update
-      this.save();
+      // this.save();
     } catch (error) {
       console.error('Error applying update:', error);
     }
@@ -124,9 +125,9 @@ class FileCabinet {
     }
 
     // open existing document from disk or create a new one
-    const doc = new Document(this.doc_path, this.next_id, doc_name);
+    const doc = new Document(this.doc_path, toString(this.next_id), doc_name);
     doc.name_file(doc_name);
-    doc_id = this.next_id;
+    doc_id = toString(this.next_id);
     this.next_id += 1;
 
     if (fs.existsSync(filePath)) {
@@ -230,21 +231,6 @@ wss.on('connection', (ws) => {
         if (doc) {
           doc.update_doc(update);
           fileCabinet.broadcast_update(ws, doc, update);
-
-          /* broadcast update to other clients
-          if (documentEditors[doc_id]) {
-            documentEditors[doc_id].forEach((client) => {
-              if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(
-                  JSON.stringify({
-                    action: 'update',
-                    update: Array.from(update), // Ensure the update is sent properly
-                    doc_id: doc_id,
-                  })
-                );
-              }
-            });
-          }*/
         } else {
           console.warn(`Document with ID ${doc_id} not found`);
         }
