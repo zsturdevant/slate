@@ -4,17 +4,13 @@ const Y = require('yjs');
 const path = require('path');
 
 class Document {
-  constructor(path, doc_id, doc_name = 'Untitled') {
+  constructor(path, doc_id, document_name) {
     this.yDoc = new Y.Doc(); // Initialize Yjs document
-    this.doc_name = this.yDoc.getText('title'); // Initialize the title (Y.Text object)
+    this.doc_name = this.yDoc.getText('title');
+    this.name_file(document_name);
 
     // Unique doc id
     this.doc_id = doc_id;
-    
-    // Set the document title (only insert the name once if it's empty)
-    if (this.doc_name.toString().length === 0) {
-      this.doc_name.insert(0, doc_name); 
-    }
   
     // Initialize contents as Y.Text (empty at the beginning)
     this.contents = this.yDoc.getText('shared-text'); 
@@ -28,10 +24,16 @@ class Document {
   }
 
   // get the doc id
+  get_doc_name() {
+    return this.doc_name.toString();
+  }
+
+  // get the doc id
   get_doc_id() {
     return this.doc_id;
   }
 
+  // save the document if we want to
   save() {
     const contents = this.contents.toString(); // Convert to string
     const title = this.doc_name.toString();
@@ -62,10 +64,10 @@ class Document {
       Y.applyUpdate(this.yDoc, updateArray);
   
       // Log the updated contents for debugging
-      console.log('Document contents after update:', this.contents.toString());
+      console.log('Document contents after update:', this.yDoc.getText('shared-text').toString());
   
       // Save the document after applying the update
-      this.save();
+      // this.save();
     } catch (error) {
       console.error('Error applying update:', error);
     }
@@ -75,26 +77,6 @@ class Document {
     this.doc_name.delete(0, this.doc_name.length);
     this.doc_name.insert(0, new_name);
   }
-
-  // // broadcast update to connected clients
-  // broadcast_update(update) {
-  //   const clients = fileCabinet.get_connected_clients(this.doc_id);
-  //   if (clients) {
-  //     clients.forEach((client) => {
-  //       if (client.readyState === WebSocket.OPEN) {
-  //         client.send(
-  //           JSON.stringify({
-  //             action: 'update',
-  //             update: Array.from(update), // Ensure the update is sent properly
-  //             doc_id: this.doc_id,
-  //           })
-  //         );
-  //       }
-  //     });
-  //   } else {
-  //     console.warn('No connected clients found for document:', this.doc_id);
-  //   }
-  // }
 }
 
 class FileCabinet {
@@ -117,47 +99,49 @@ class FileCabinet {
     const filePath = path.join(this.doc_path, `${doc_name}.json`);
     let doc_id;
     
-    // Check if the document is already open
+    // if this is an existing document that is currrently open
     if (this.doc_name_to_id.has(doc_name)) {
       doc_id = this.doc_name_to_id.get(doc_name);
       return this.open_docs.get(doc_id); // return the existing document instance
     }
 
     // open existing document from disk or create a new one
-    const doc = new Document(this.doc_path, this.next_id, doc_name);
-    doc.name_file(doc_name);
-    doc_id = this.next_id;
+    const doc = new Document(this.doc_path, toString(this.next_id), doc_name);
+
+    doc_id = toString(this.next_id);
     this.next_id += 1;
 
+    // if this doc has been accessed before but is not currently open
     if (fs.existsSync(filePath)) {
+
       try {
         const data = fs.readFileSync(filePath, 'utf8');
         const parsedData = JSON.parse(data);
   
-        doc.doc_name.insert(0, parsedData.title);
+        doc.name_file(parsedData.title);
         doc.contents.insert(0, parsedData.contents);
         
         //store the document in the open_docs
+        this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
         this.open_docs.set(doc.get_doc_id(), doc);  
         return doc;
+
       } catch (error) {
         console.error('Error loading document:', error);
       }
+
+    // this is a new doc that has never been opened
     } else {
       doc.save() // save new document to disk
+      this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
+      this.open_docs.set(doc.get_doc_id(), doc);
+      return doc;
     }
-
-    // register the document
-    //this.document_list.push(`${doc_name}`);
-    //this.open_docs.set(doc_id, doc);
-    this.doc_name_to_id.set(doc_name, doc_id);
-    this.open_docs.set(doc_id, doc);
-    return doc;
   }
 
   // opens a file if it exists, if it does not opens a new file
   get_open_file(doc_name, doc_id) {
-    if (this.open_docs.has(doc_name)) {
+    if (this.open_docs.has(doc_id)) {
       return this.open_docs.get(doc_id);
     } else {
       return this.open_file(doc_name);
@@ -202,13 +186,13 @@ wss.on('connection', (ws) => {
     console.log('Message received from client:', message);
     try {
       const msg = JSON.parse(message);
-      // const { action, doc_name, doc_id, author, update } = msg;
       const { action, doc_name, doc_id, update } = msg;
 
       if (action === 'open') {
-        // const doc = fileCabinet.open_file(author, doc_name);
+
         const doc = fileCabinet.open_file(doc_name);
         current_doc_id = doc.get_doc_id();
+        console.log('Current doc_id:', current_doc_id);
 
         if (!documentEditors[current_doc_id]) {
           documentEditors[current_doc_id] = new Set();
@@ -223,28 +207,11 @@ wss.on('connection', (ws) => {
             contents: doc.contents.toString(),
           })
         );
-      // } else if (action === 'edit' && currentDocName) {
       } else if (action === 'edit') {
-        // const doc = fileCabinet.get_open_file(author, doc_name, doc_id);
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
         if (doc) {
           doc.update_doc(update);
           fileCabinet.broadcast_update(ws, doc, update);
-
-          /* broadcast update to other clients
-          if (documentEditors[doc_id]) {
-            documentEditors[doc_id].forEach((client) => {
-              if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(
-                  JSON.stringify({
-                    action: 'update',
-                    update: Array.from(update), // Ensure the update is sent properly
-                    doc_id: doc_id,
-                  })
-                );
-              }
-            });
-          }*/
         } else {
           console.warn(`Document with ID ${doc_id} not found`);
         }
@@ -267,14 +234,7 @@ wss.on('connection', (ws) => {
         // Save the document if no editors are left
         if (editors.size === 0) {
           console.log(`No editors left for ${current_doc_id}. Saving document.`);
-          //const doc = fileCabinet.get_open_file(this.open_docs.get(current_doc_id).doc_name, current_doc_id);
           const doc = fileCabinet.open_docs.get(current_doc_id);
-          /*if (doc && doc.save()) {
-            console.log(`Document "${current_doc_id}" saved successfully.`);
-          } else {
-            console.error(`Failed to save document: ${current_doc_id}`);
-          }
-            */
           if (doc) {
             doc.save();
             console.log(`Document "${doc.doc_name}" saved successfully.`);
