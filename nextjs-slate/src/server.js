@@ -23,6 +23,19 @@ class Document {
     this.path = path;
   }
 
+  // deletes the file associated with the doc
+  delete() {
+    const title = this.doc_name.toString();
+    const filePath = path.join(this.path, `${title}.json`);
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Error deleting file:', err);
+        return;
+      }
+      console.log('File deleted successfully.');
+    });
+  }
+
   // get the doc id
   get_doc_name() {
     return this.doc_name.toString();
@@ -82,15 +95,26 @@ class Document {
 class FileCabinet {
   constructor(doc_path) {
     this.doc_path = doc_path;
-    this.document_list = [];
     this.open_docs = new Map(); // Map<doc_id, Document>
     this.doc_name_to_id = new Map(); //Map<doc_name, doc_id>
     this.next_id = 0;
+  }
 
+  // deletes a file from the server
+  delete_doc(doc){
+    this.open_docs.delete(doc.doc_id);
+    this.doc_name_to_id.delete(doc.doc_name);
+    doc.delete();
+  }
+
+  // a method for getting a list of all the documents 
+  get_docs() {
     try {
-      this.document_list = fs.readdirSync(doc_path);
+      const doc_list = fs.readdirSync(this.doc_path);
+      return doc_list;
     } catch (err) {
       console.error('Error reading directory:', err);
+      return [];
     }
   }
 
@@ -106,9 +130,9 @@ class FileCabinet {
     }
 
     // open existing document from disk or create a new one
-    const doc = new Document(this.doc_path, toString(this.next_id), doc_name);
+    const doc = new Document(this.doc_path, this.next_id.toString(), doc_name);
 
-    doc_id = toString(this.next_id);
+    doc_id = this.next_id.toString();
     this.next_id += 1;
 
     // if this doc has been accessed before but is not currently open
@@ -148,6 +172,7 @@ class FileCabinet {
     }
   }
 
+  // find all the clients that are connected
   get_connected_clients(doc_id) {
     return documentEditors[doc_id];
   }
@@ -157,12 +182,11 @@ class FileCabinet {
     const clients = this.get_connected_clients(doc.get_doc_id());
     if (clients) {
       clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-        // if (client.readyState === WebSocket.OPEN && client != ws) {
+        if (client.readyState === WebSocket.OPEN && client != ws) {
           client.send(
             JSON.stringify({
               action: 'update',
-              update: Array.from(update), // Ensure the update is sent properly
+              update: Array.from(update),
               doc_id: this.doc_id,
             })
           );
@@ -188,6 +212,7 @@ wss.on('connection', (ws) => {
       const msg = JSON.parse(message);
       const { action, doc_name, doc_id, update } = msg;
 
+      // open a documents and send its contents to the client
       if (action === 'open') {
 
         const doc = fileCabinet.open_file(doc_name);
@@ -208,6 +233,8 @@ wss.on('connection', (ws) => {
             contents: doc.contents.toString(),
           })
         );
+
+      // update the document and broadcast the update to other clients
       } else if (action === 'edit') {
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
         if (doc) {
@@ -216,7 +243,30 @@ wss.on('connection', (ws) => {
         } else {
           console.warn(`Document with ID ${doc_id} not found`);
         }
+
+      // send a list of all documents to the client
+      } else if (action === 'list_files') {
+        const docs = fileCabinet.get_docs();
+        if (docs) {
+          ws.send(
+            JSON.stringify({
+              action: 'doc_list',
+              update: Array.from(docs),
+            })
+          );
+          
+        // delete the file, only works if one person is working on it
+        } else if (action === 'delete_file') {
+          // action, doc_name, doc_id, update
+          const doc = fileCabinet.get_open_file(doc_name, doc_id);
+          fileCabinet.delete_doc(doc);
+        
+        } else {
+          console.warn(`no documents found.`);
+        }
       }
+
+
     } catch (error) {
       console.error('Error processing message:', error);
     }
