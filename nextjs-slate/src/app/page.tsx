@@ -1,6 +1,6 @@
 "useclient";
 
-import Header from "@/components/Header";
+import {Header} from "@/components/TextArea";
 import TextArea from "@/components/TextArea";
 import Link from 'next/link';
 import React, { useState } from "react";
