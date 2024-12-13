@@ -17,7 +17,6 @@ class Document {
   
     // Log the current contents (will be empty initially)
     console.log('Initialized document with title:', this.doc_name.toString());
-    
   
     // Initialize author list and path for saving the document
     this.path = path;
@@ -36,7 +35,7 @@ class Document {
     });
   }
 
-  // get the doc id
+  // get the doc name
   get_doc_name() {
     return this.doc_name.toString();
   }
@@ -61,7 +60,7 @@ class Document {
     }
   }
 
-  // Apply update to Y.Doc and to other connected clients
+  // Apply update to Y.Doc
   update_doc(update) {
     try {
       // Convert update to Uint8Array if needed
@@ -105,12 +104,13 @@ class Document {
       }
   
       console.log(`Document renamed from "${old_title}" to "${new_title}"`);
+      // save the document with the new title
+      this.save();
     } catch (error) {
       console.error('Error renaming document:', error);
     }
   }
 }
-
 
 
 class FileCabinet {
@@ -139,18 +139,17 @@ class FileCabinet {
     }
   }
 
-  // Open or create a document by its name
   open_file(doc_name) {
     const filePath = path.join(this.doc_path, `${doc_name}.json`);
     let doc_id;
     
-    // if this is an existing document that is currrently open
+    // check if this document name already exists
     if (this.doc_name_to_id.has(doc_name)) {
       doc_id = this.doc_name_to_id.get(doc_name);
       return this.open_docs.get(doc_id); // return the existing document instance
     }
 
-    // open existing document from disk or create a new one
+    // create a new document if no file exists
     const doc = new Document(this.doc_path, this.next_id.toString(), doc_name);
 
     doc_id = this.next_id.toString();
@@ -158,31 +157,41 @@ class FileCabinet {
 
     // if this doc has been accessed before but is not currently open
     if (fs.existsSync(filePath)) {
-
+      // load existing document from disk
       try {
         const data = fs.readFileSync(filePath, 'utf8');
         const parsedData = JSON.parse(data);
   
         doc.name_file(parsedData.title);
         doc.contents.insert(0, parsedData.contents);
-        console.log('Initialized document with contents:', doc.contents.toString());
+        console.log('Load existing document:', parsedData.title);
+        //console.log('Initialized document with contents:', doc.contents.toString());
         
         //store the document in the open_docs
-        this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
-        this.open_docs.set(doc.get_doc_id(), doc);  
-        return doc;
-
+        //this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
+        //this.open_docs.set(doc.get_doc_id(), doc);  
+        //return doc;
       } catch (error) {
         console.error('Error loading document:', error);
       }
-
-    // this is a new doc that has never been opened
+    } else {
+      // save new document to disk
+      doc.save();
+      console.log('Created new document:', doc_name);
+    }
+    /* this is a new doc that has never been opened
     } else {
       doc.save() // save new document to disk
       this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
       this.open_docs.set(doc.get_doc_id(), doc);
       return doc;
     }
+      */
+    
+    // register the document in the mpapings
+    this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
+    this.open_docs.set(doc.get_doc_id(), doc);
+    return doc;
   }
 
   // opens a file if it exists, if it does not opens a new file
@@ -207,6 +216,8 @@ class FileCabinet {
     // Update mappings
     this.doc_name_to_id.delete(old_name);
     this.doc_name_to_id.set(new_name, doc_id);
+
+    console.log(`Updated mappings for renamed document: ${old_name} -> ${new_name}`);
   }
   
 
@@ -272,7 +283,7 @@ wss.on('connection', (ws) => {
 
       // open a documents and send its contents to the client
       if (action === 'open') {
-
+        // get document from file cabinet
         const doc = fileCabinet.open_file(doc_name);
         current_doc_id = doc.get_doc_id();
         console.log('Current doc_id:', current_doc_id);
@@ -288,9 +299,9 @@ wss.on('connection', (ws) => {
             action: 'documentOpened',
             update: Array.from(update), // Convert Uint8Array to an Array
             doc_id: current_doc_id,     // Include document identifier
+            title: doc.get_doc_name(),  // include document title
           })
         );
-
       // update the document and broadcast the update to other clients
       } else if (action === 'edit') {
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
@@ -300,7 +311,6 @@ wss.on('connection', (ws) => {
         } else {
           console.warn(`Document with ID ${doc_id} not found`);
         }
-
       // send a list of all documents to the client
       } else if (action === 'rename') {
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
@@ -314,14 +324,13 @@ wss.on('connection', (ws) => {
           } else {
             console.warn(`Document with ID ${doc_id} not found`);
           }
-          
         }
       } else if (action === 'list_files') {
         const docs = fileCabinet.get_docs();
-        let new_docs = []
-        for (filename of docs) {
-          filename = filename.slice(0, filename.length - 5)
-          new_docs.push(filename)
+        let new_docs = [];
+        for (let filename of docs) {
+          filename = filename.slice(0, filename.length - 5);
+          new_docs.push(filename);
         }
         if (docs) {
           ws.send(
@@ -330,22 +339,35 @@ wss.on('connection', (ws) => {
               update: Array.from(new_docs),
             })
           );
-          
-        // delete the file, only works if one person is working on it
-        } else if (action === 'delete_file') {
-          // action, doc_name, doc_id, update
-          const doc = fileCabinet.get_open_file(doc_name, doc_id);
-          fileCabinet.delete_doc(doc);
-        
-        } else {
-          console.warn(`no documents found.`);
         }
+       } else if (action === 'delete_file') {
+          const doc = fileCabinet.get_open_file(doc_name, doc_id);
+        
+            // Delete the document
+            fileCabinet.delete_doc(doc);
+            
+            // Notify connected clients about the deletion
+            const clients = documentEditors[doc_id];
+            if (clients) {
+              clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(
+                    JSON.stringify({
+                      action: 'delete',
+                      doc_id: doc_id,
+                      doc_name: doc_name,
+                    })
+                  );
+                }
+              });
+            }
+            console.log(`Document "${doc_name}" deleted successfully.`);
+          } else {
+              console.warn(`Document with ID ${doc_id} not found for deletion.`);
+          }
+       } catch (error) {
+        console.error('Error processing message:', error);
       }
-
-
-    } catch (error) {
-      console.error('Error processing message:', error);
-    }
   });
 
   ws.on('close', () => {

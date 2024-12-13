@@ -1,10 +1,10 @@
 "use client";
 
+import { renameDocument } from '@/yjsClient';
 import React, { useEffect, useState } from 'react';
 import { FaArrowLeftLong} from "react-icons/fa6";
 
 export function Header({doc}) {
-
   const [title, setTitle] = useState('');
 
   useEffect(() => {
@@ -19,27 +19,48 @@ export function Header({doc}) {
     updateTitle();
 
     return () => sharedTitle.unobserve(updateTitle);
-  }, [title]);
+  }, [doc]);
+
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+
+    //update shared title in the Y.Doc
+    const sharedTitle = doc.getText('shared-title');
+    sharedTitle.delete(0, sharedTitle.length);
+    sharedTitle.insert(0, newTitle);
+
+    // Notify the server about the title change
+    renameDocument(newTitle);
+  };
+
+  const handleTitleKeyDown = (e) => {
+    // Optional: Save title changes on Enter and blur the input
+    if (e.key === 'Enter') {
+      e.target.blur(); // Unfocus the input field
+    }
+  };
 
   return (
       <>
-      {/* <div className='flex justify-center text-2xl py-4'> Yuh </div> */}
       <div className="header-wrapper flex flex-col w-full p-4 bg-[#F9FBFD] dark:bg-[#1E202F]">
           <div className="top-part flex items-center text-2xl gap-4 m-2">
               <div className="arrows flex items-center gap-2">
                   <button> <FaArrowLeftLong/>  </button>
               </div>
-              {/* TODO: Save name when eneter key is pressed and unfocus/unselect the input field*/}
-              <input className="doc-name placeholder:text-[#5A5A5A] dark:placeholder:text-[#b5c1ec] max-w-64 w-auto truncate bg-inherit dark:bg-[#1E202F] focus:placeholder-transparent"
-                     placeholder="Untitled"
-                     defaultValue={title}/>
-              
+              <input 
+                className="doc-name placeholder:text-[#5A5A5A] dark:placeholder:text-[#b5c1ec] max-w-64 w-auto truncate bg-inherit dark:bg-[#1E202F] focus:placeholder-transparent"
+                placeholder="Untitled"
+                defaultValue={title}
+                onChange={handleTitleChange}
+                onKeyDown={handleTitleKeyDown}
+                />
           </div>
           <div className="bottom-part text-[#5A5A5A] rounded-3xl p-2 bg-[#e8eaee] dark:bg-[#87AEF9] text-center">
               {/* formatting stuff like bold and sheet */}
           </div>
       </div>
-      </>
+    </>
   );
 }
 
@@ -58,7 +79,7 @@ export default function TextArea({doc}) {
       updateText();
   
       return () => sharedText.unobserve(updateText);
-    }, [text]);
+    }, [doc]);
 
     // just edit where the curser is?
     const handleChange = (e) => {

@@ -3,11 +3,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Card from "@/components/Card";
-import { getDocList } from '@/yjsClient';  // Assuming getDocList is correctly imported
+import { getDocList, deleteDocument } from '@/yjsClient';
 import { useState, useEffect } from 'react';
 
 export default function Home() {
-  const [docList, setDocList] = useState();
+  const [docList, setDocList] = useState<string[]>([]); //useState()'
   const [loading, setLoading] = useState(true);  // State to track loading status
   const [error, setError] = useState<string | null>(null);  // State to track any errors
 
@@ -28,6 +28,12 @@ export default function Home() {
 
     fetchDocs();
   }, []);  // Empty dependency array means this runs only once on mount
+  
+  const handleDelete = (docname: string) => {
+    deleteDocument(docname);  // Call the delete function
+    // Remove deleted document from the docList state
+    setDocList((prevList) => prevList.filter((doc) => doc !== docname));
+  };
 
   if (loading) {
     return <div></div>;  // Show loading text while fetching docs
@@ -54,7 +60,11 @@ export default function Home() {
           <p> Files </p>
           {docList.length > 0 ? (
             docList.map((file, index) => (
-              <Card key={index} docname={file} />
+              <Card 
+                key={index} 
+                docname={file}
+                onDelete={handleDelete}
+                />
             ))
           ) : (
             <p>No files available.</p>  // Show a message if no files are available

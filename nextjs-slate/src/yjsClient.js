@@ -47,10 +47,12 @@ export function getYDoc(docname) {
           const update = new Uint8Array(msg.update);
           last_update_recieved = update;
           Y.applyUpdate(ydoc, update);
-          document_id = msg.doc_id;
-      
-        } else if (msg.action === 'rename') {
-          handleRenameNotification(msg.old_name, msg.new_name);
+          //document_id = msg.doc_id;
+
+          // update the shared title with the title provided by the server
+          const sharedTitle = ydoc.getText('shared-title');
+          sharedTitle.delete(0, sharedTitle.length);
+          sharedTitle.insert(0, msg.title || 'Untitled');
         } else {
           console.warn('Unrecognized message format:', msg);
         }
@@ -70,7 +72,7 @@ export function getYDoc(docname) {
 
       const message = JSON.stringify({
         action: 'edit',
-        doc_name: docname, // replace with actual document name
+        doc_name: docname,
         doc_id: document_id,
         update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
       });
@@ -94,9 +96,9 @@ export function renameDocument(newTitle) {
 
   const message = JSON.stringify({
     action: 'rename',
-    doc_name: ydoc.getText('title').toString(), // Get current document name
+    doc_name: ydoc.getText('shared-title').toString(), // Get current document name
     doc_id: document_id,
-    new_title: newTitle, // New title to be set
+    new_title: newTitle,
   });
 
   ws.send(message);
@@ -144,6 +146,21 @@ export function getDocList() {
       }
     };
   });
+}
+
+export function deleteDocument(docname) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.error('WebSocket is not open. Cannot delete document.');
+    return;
+  }
+
+  const message = JSON.stringify({
+    action: 'delete_file',
+    doc_name: docname, // Send the document name to delete
+  });
+
+  ws.send(message);
+  console.log(`Delete request sent for "${docname}"`);
 }
 
 
