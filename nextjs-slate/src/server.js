@@ -3,6 +3,22 @@ const fs = require('fs');
 const Y = require('yjs');
 const path = require('path');
 
+// File for storing metrics
+const metricsPath = path.join(__dirname, 'metrics.json');
+
+// Utility to log metrics
+function log_metrics(action, docName, latency, docSize = null) {
+  const metrics = fs.existsSync(metricsPath)
+    ? JSON.parse(fs.readFileSync(metricsPath, 'utf-8'))
+    : [];
+
+  // Add a new metric entry
+  metrics.push({ action, docName, latency, docSize, timestamp: Date.now() });
+
+  // Write back the updated metrics
+  fs.writeFileSync(metricsPath, JSON.stringify(metrics, null, 2), 'utf-8');
+}
+
 class Document {
   constructor(path, doc_id, document_name) {
     this.yDoc = new Y.Doc(); // Initialize Yjs document
@@ -77,6 +93,10 @@ class Document {
   
       // Log the updated contents for debugging
       console.log('Document contents after update:', this.yDoc.getText('shared-text').toString());
+      
+      // tracking document size
+      const size = this.contents.toString().length;
+      console.log(`Document size after update: ${size} characters`);
   
       // Save the document after applying the update
       // this.save();
@@ -277,15 +297,18 @@ wss.on('connection', (ws) => {
 
   ws.on('message', (message) => {
     console.log('Message received from client:', message);
+    const startTime = Date.now(); // start timer for latency
+    
     try {
       const msg = JSON.parse(message);
       const { action, doc_name, doc_id, new_title, update } = msg;
 
       // open a documents and send its contents to the client
       if (action === 'open') {
-        // get document from file cabinet
+        const startTime = Date.now(); 
         const doc = fileCabinet.open_file(doc_name);
         current_doc_id = doc.get_doc_id();
+        
         console.log('Current doc_id:', current_doc_id);
 
         if (!documentEditors[current_doc_id]) {
@@ -300,30 +323,71 @@ wss.on('connection', (ws) => {
             update: Array.from(update), // Convert Uint8Array to an Array
             doc_id: current_doc_id,     // Include document identifier
             title: doc.get_doc_name(),  // include document title
-          })
+          }),
+          () => {
+            const latency = Date.now() - startTime; // Measure latency
+            log_metrics('open', doc_name, latency);
+            console.log(`Latency for 'open' action: ${latency} ms`);
+          }
         );
-      // update the document and broadcast the update to other clients
       } else if (action === 'edit') {
+        const startTime = Date.now(); 
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
+        
         if (doc) {
           doc.update_doc(update);
           fileCabinet.broadcast_update(ws, doc, update);
+
+          const docSize = doc.contents.toString().length; // Get document size
+          ws.send(
+            JSON.stringify({ action: 'ack', doc_name }),
+            () => {
+              const latency = Date.now() - startTime; // Measure latency
+              log_metrics('edit', doc_name, latency, docSize); // Log latency & size
+              console.log(`Latency for 'edit' action: ${latency} ms, size: ${docSize}`);
+            }
+          );
         } else {
           console.warn(`Document with ID ${doc_id} not found`);
         }
-      // send a list of all documents to the client
-      } else if (action === 'rename') {
+      } else if (action === 'delete_file') {
+        const startTime = Date.now();
         const doc = fileCabinet.get_open_file(doc_name, doc_id);
+      
+        if (doc) {
+          fileCabinet.delete_doc(doc); // Delete document
+      
+          // Notify connected clients
+          const clients = documentEditors[doc_id];
+          if (clients) {
+            clients.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ action: 'delete', doc_id, doc_name }));
+              }
+            });
+          }
+
+        console.log(`Document "${doc_name}" deleted successfully.`);
+
+        const latency = Date.now() - startTime; // Measure latency
+        log_metrics('delete_file', doc_name, latency); // Log latency
+        console.log(`Latency for 'delete_file' action: ${latency} ms`);
+        } else {
+          console.warn(`Document with ID ${doc_id} not found for deletion.`);
+        }
+      } else if (action === 'rename') {
+        const startTime = Date.now();
+        const doc = fileCabinet.get_open_file(doc_name, doc_id);
+
         if (doc) {
           fileCabinet.rename_document(doc_id, new_title);
+          fileCabinet.broadcast_rename(ws, doc, new_title);
 
-          // rename the document and broadcast the rename to other clients
-          if (doc) {
-            doc.rename_doc(new_title);
-            fileCabinet.broadcast_rename(ws, doc, new_title);
-          } else {
-            console.warn(`Document with ID ${doc_id} not found`);
-          }
+          const latency = Date.now() - startTime; // Measure latency
+          log_metrics('rename', doc_name, latency); // Log latency
+          console.log(`Latency for 'rename' action: ${latency} ms`);
+        } else {
+          console.warn(`Document with ID ${doc_id} not found for renaming.`);
         }
       } else if (action === 'list_files') {
         const docs = fileCabinet.get_docs();
@@ -340,34 +404,10 @@ wss.on('connection', (ws) => {
             })
           );
         }
-       } else if (action === 'delete_file') {
-          const doc = fileCabinet.get_open_file(doc_name, doc_id);
-        
-            // Delete the document
-            fileCabinet.delete_doc(doc);
-            
-            // Notify connected clients about the deletion
-            const clients = documentEditors[doc_id];
-            if (clients) {
-              clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                  client.send(
-                    JSON.stringify({
-                      action: 'delete',
-                      doc_id: doc_id,
-                      doc_name: doc_name,
-                    })
-                  );
-                }
-              });
-            }
-            console.log(`Document "${doc_name}" deleted successfully.`);
-          } else {
-              console.warn(`Document with ID ${doc_id} not found for deletion.`);
-          }
-       } catch (error) {
-        console.error('Error processing message:', error);
       }
+    } catch (error) {
+        console.error('Error processing message:', error);
+    }
   });
 
   ws.on('close', () => {
