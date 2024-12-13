@@ -90,7 +90,28 @@ class Document {
     this.doc_name.delete(0, this.doc_name.length);
     this.doc_name.insert(0, new_name);
   }
+
+  rename_doc(new_title) {
+    try {
+      const old_title = this.doc_name.toString();
+      this.name_file(new_title); // Update the title in Y.Text
+  
+      // Rename the file on disk
+      const oldFilePath = path.join(this.path, `${old_title}.json`);
+      const newFilePath = path.join(this.path, `${new_title}.json`);
+  
+      if (fs.existsSync(oldFilePath)) {
+        fs.renameSync(oldFilePath, newFilePath);
+      }
+  
+      console.log(`Document renamed from "${old_title}" to "${new_title}"`);
+    } catch (error) {
+      console.error('Error renaming document:', error);
+    }
+  }
 }
+
+
 
 class FileCabinet {
   constructor(doc_path) {
@@ -173,6 +194,22 @@ class FileCabinet {
     }
   }
 
+  rename_document(doc_id, new_name) {
+    const doc = this.open_docs.get(doc_id);
+    if (!doc) {
+      console.warn(`Document with ID ${doc_id} not found`);
+      return;
+    }
+  
+    const old_name = doc.get_doc_name();
+    doc.rename_doc(new_name);
+  
+    // Update mappings
+    this.doc_name_to_id.delete(old_name);
+    this.doc_name_to_id.set(new_name, doc_id);
+  }
+  
+
   // find all the clients that are connected
   get_connected_clients(doc_id) {
     return documentEditors[doc_id];
@@ -197,6 +234,26 @@ class FileCabinet {
       console.warn('No connected clients found for document:', this.doc_id);
     }
   }
+
+  // broadcast update to connected clients
+  broadcast_rename(ws, doc, new_title) {
+    const clients = this.get_connected_clients(doc.get_doc_id());
+    if (clients) {
+      clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN && client != ws) {
+          client.send(
+            JSON.stringify({
+              action: 'rename',
+              old_name: doc_name,
+              new_name: new_title,
+            })
+          );
+        }
+      });
+    } else {
+      console.warn('No connected clients found for document:', this.doc_id);
+    }
+  }
 }
 
 const wss = new WebSocket.Server({ port: 8080 });
@@ -211,7 +268,7 @@ wss.on('connection', (ws) => {
     console.log('Message received from client:', message);
     try {
       const msg = JSON.parse(message);
-      const { action, doc_name, doc_id, update } = msg;
+      const { action, doc_name, doc_id, new_title, update } = msg;
 
       // open a documents and send its contents to the client
       if (action === 'open') {
@@ -245,6 +302,20 @@ wss.on('connection', (ws) => {
         }
 
       // send a list of all documents to the client
+      } else if (action === 'rename') {
+        const doc = fileCabinet.get_open_file(doc_name, doc_id);
+        if (doc) {
+          fileCabinet.rename_document(doc_id, new_title);
+
+          // rename the document and broadcast the rename to other clients
+          if (doc) {
+            doc.rename_doc(new_title);
+            fileCabinet.broadcast_rename(ws, doc, new_title);
+          } else {
+            console.warn(`Document with ID ${doc_id} not found`);
+          }
+          
+        }
       } else if (action === 'list_files') {
         const docs = fileCabinet.get_docs();
         let new_docs = []

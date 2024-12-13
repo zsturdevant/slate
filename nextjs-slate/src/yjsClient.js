@@ -49,6 +49,8 @@ export function getYDoc(docname) {
           Y.applyUpdate(ydoc, update);
           document_id = msg.doc_id;
       
+        } else if (msg.action === 'rename') {
+          handleRenameNotification(msg.old_name, msg.new_name);
         } else {
           console.warn('Unrecognized message format:', msg);
         }
@@ -77,12 +79,28 @@ export function getYDoc(docname) {
         ws.send(message);
       }
     }
-    
   };
 
   ydoc.on('update', updateHandler);
 
   return { ydoc, ws };
+}
+
+export function renameDocument(newTitle) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.error('WebSocket is not open. Cannot rename document.');
+    return;
+  }
+
+  const message = JSON.stringify({
+    action: 'rename',
+    doc_name: ydoc.getText('title').toString(), // Get current document name
+    doc_id: document_id,
+    new_title: newTitle, // New title to be set
+  });
+
+  ws.send(message);
+  console.log(`Rename request sent: ${newTitle}`);
 }
 
 export function getDocList() {
