@@ -42,7 +42,7 @@ export default function Home() {
       <div className='flex flex-col font-mono ml-8 mt-4 gap-4'>
         <div id="header" className="header flex items-center gap-4">
           <Image src="S-1.svg" width={50} height={50} alt='Logo'/>
-          <p className="text-4xl"> Welcome </p>
+          <p className="text-4xl"> Slate </p>
         </div>
         <button id='add_file_or_folder' className='bg-[#5A5A5A] w-24 rounded-md h-8 ml-8'>
           <Link href={{

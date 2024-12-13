@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { getYDoc } from '../../yjsClient';
-import { FaArrowLeftLong, FaArrowRightLong, FaBars } from "react-icons/fa6";
+import { FaArrowLeftLong} from "react-icons/fa6";
 
 export function Header({doc}) {
 
@@ -28,11 +27,11 @@ export function Header({doc}) {
       <div className="header-wrapper flex flex-col w-full p-4 bg-[#F9FBFD] dark:bg-[#1E202F]">
           <div className="top-part flex items-center text-2xl gap-4 m-2">
               <div className="arrows flex items-center gap-2">
-                  <button> <FaArrowLeftLong/> </button>
+                  <button> <FaArrowLeftLong/>  </button>
               </div>
               {/* TODO: Save name when eneter key is pressed and unfocus/unselect the input field*/}
               <input className="doc-name placeholder:text-[#5A5A5A] dark:placeholder:text-[#b5c1ec] max-w-64 w-auto truncate bg-inherit dark:bg-[#1E202F] focus:placeholder-transparent"
-                     placeholder="Untitled Document"
+                     placeholder="Untitled"
                      defaultValue={title}/>
               
           </div>
@@ -42,7 +41,6 @@ export function Header({doc}) {
       </div>
       </>
   );
-  
 }
 
 export default function TextArea({doc}) {
@@ -71,8 +69,6 @@ export default function TextArea({doc}) {
       sharedText.insert(0, e.target.value);
   
       };
-    
-   
     
     return (
         <div className="flex-grow flex justify-center items-center px-60 bg-[#F9FBFD] dark:bg-[#1E202F]">
