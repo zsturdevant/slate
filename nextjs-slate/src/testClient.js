@@ -24,6 +24,7 @@ async function simulateClient(docName, id, iterations, payloadSize) {
     ws.onopen = async () => {
       console.log(`Client ${id} connected`);
 
+      
       // Open the document
       ws.send(
         JSON.stringify({
