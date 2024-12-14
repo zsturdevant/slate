@@ -7,7 +7,7 @@ const SERVER_URL = 'ws://localhost:8080';
 async function measureRTT(client, message) {
   const start = Date.now();
   return new Promise((resolve) => {
-    client.onmessage = (event) => {
+    client.onmessage = () => {
       const end = Date.now();
       resolve(end - start); // Calculate RTT
     };

@@ -5,10 +5,11 @@ import React, { useEffect, useState } from 'react';
 import { FaArrowLeftLong} from "react-icons/fa6";
 import Link from 'next/link';
 import * as Y from 'yjs';
+// import { KeyObject } from 'crypto';
 
 
 
-export function Header({ doc }: { doc: Y.Doc }) {
+export function Header({doc}: {doc: Y.Doc}) {
   const [title, setTitle] = useState('');
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export function Header({ doc }: { doc: Y.Doc }) {
     return () => sharedTitle.unobserve(updateTitle);
   }, [doc]);
 
-  const handleTitleChange = (e) => {
+  const handleTitleChange = (e:any) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
 
@@ -38,7 +39,8 @@ export function Header({ doc }: { doc: Y.Doc }) {
     renameDocument(newTitle);
   };
 
-  const handleTitleKeyDown = (e) => {
+  const handleTitleKeyDown = (e: any) => {
+    console.log("\n\n\n\n\n\n\n\n\n\n\n\n" + e);
     // Optional: Save title changes on Enter and blur the input
     if (e.key === 'Enter') {
       e.target.blur(); // Unfocus the input field
@@ -68,7 +70,7 @@ export function Header({ doc }: { doc: Y.Doc }) {
   );
 }
 
-export default function TextArea({ doc }: { doc: Y.Doc }) {
+export default function TextArea({doc}: {doc: Y.Doc}) {
     const [text, setText] = useState('');
   
     useEffect(() => {
@@ -86,7 +88,7 @@ export default function TextArea({ doc }: { doc: Y.Doc }) {
     }, [doc]);
 
     // just edit where the curser is?
-    const handleChange = (e) => {
+    const handleChange = (e: any) => {
       // get the shared text from the global ydoc instance
       const sharedText = doc.getText('shared-text');
 

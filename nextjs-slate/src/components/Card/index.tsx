@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { deleteDocument } from '@/yjsClient'; 
+// import { deleteDocument } from '@/yjsClient'; 
 
 export default function Card({ docname, onDelete }: { docname: string, onDelete: (docname: string) => void }) {
   const handleDelete = () => {
@@ -27,7 +27,7 @@ export default function Card({ docname, onDelete }: { docname: string, onDelete:
       </Link>
     </button>*/
     <div className="flex justify-between items-center p-4 border mb-4">
-        <Link href={{pathname: '/TextEditor', query: { docname: docname },}} passHref>
+        <Link prefetch = {false} href={{pathname: '/TextEditor', query: { docname: docname },}} passHref>
           <button className='bg-[#5A5A5A] w-24 rounded-md h-8 hover:bg-[#888] focus:outline-none' onClick={cardClicked}>
             {docname}
           </button>

@@ -2,8 +2,7 @@
 
 import {Header} from "@/components/TextArea";
 import TextArea from "@/components/TextArea";
-import Link from 'next/link';
-import React, { useState } from "react";
+import React from "react";
 import { getYDoc } from '../../yjsClient';
 import { useSearchParams } from 'next/navigation';
 import { unstable_noStore as noStore } from "next/cache";

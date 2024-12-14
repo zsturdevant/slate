@@ -20,7 +20,7 @@ export default function Home() {
         console.log("This is docs: ", docs)
         setDocList(docs);  // Set the docs to state
       } catch (err) {
-        setError('Failed to load documents');  // Handle error
+        setError('Failed to load documents:' + err);  // Handle error
       } finally {
         setLoading(false);  // Set loading to false when done
       }
@@ -51,7 +51,7 @@ export default function Home() {
           <p className="text-4xl"> Slate </p>
         </div>
         <button id='add_file_or_folder' className='bg-[#5A5A5A] w-24 rounded-md h-8 ml-8'>
-          <Link href={{
+          <Link prefetch = {false} href={{
             pathname: '/TextEditor',
             query: { docname: 'untitled' }
           }}>Add + </Link>
