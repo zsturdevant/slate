@@ -47,7 +47,7 @@ export function getYDoc(docname) {
           const update = new Uint8Array(msg.update);
           last_update_recieved = update;
           Y.applyUpdate(ydoc, update);
-          //document_id = msg.doc_id;
+          document_id = msg.doc_id;
 
           // update the shared title with the title provided by the server
           const sharedTitle = ydoc.getText('shared-title');
@@ -85,7 +85,7 @@ export function getYDoc(docname) {
 
   ydoc.on('update', updateHandler);
 
-  return { ydoc, ws };
+  return { ydoc, ws , document_id };
 }
 
 export function renameDocument(newTitle) {

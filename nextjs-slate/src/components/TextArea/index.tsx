@@ -11,7 +11,7 @@ export function Header({doc}) {
   useEffect(() => {
     // get the shared text from the global ydoc instance
     const sharedTitle = doc.getText('shared-title');
-    console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\nThis is the title: ", sharedTitle.toString());
+    console.log("From Header Input Field:\n     This is the title: ", sharedTitle.toString());
     // make this text the state that we see on screen
     const updateTitle = () => setTitle(sharedTitle.toString());
 

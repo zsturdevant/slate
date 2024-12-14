@@ -160,6 +160,7 @@ class FileCabinet {
   }
 
   open_file(doc_name) {
+    console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nThis is the docname from open_file on server: ", doc_name);
     const filePath = path.join(this.doc_path, `${doc_name}.json`);
     let doc_id;
     
