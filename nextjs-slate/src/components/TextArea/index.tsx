@@ -4,8 +4,11 @@ import { renameDocument } from '@/yjsClient';
 import React, { useEffect, useState } from 'react';
 import { FaArrowLeftLong} from "react-icons/fa6";
 import Link from 'next/link';
+import * as Y from 'yjs';
 
-export function Header({doc}) {
+
+
+export function Header({ doc }: { doc: Y.Doc }) {
   const [title, setTitle] = useState('');
 
   useEffect(() => {
@@ -65,7 +68,7 @@ export function Header({doc}) {
   );
 }
 
-export default function TextArea({doc}) {
+export default function TextArea({ doc }: { doc: Y.Doc }) {
     const [text, setText] = useState('');
   
     useEffect(() => {
