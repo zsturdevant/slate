@@ -4,8 +4,6 @@ let ydoc;
 let document_id = -1;
 let ws;
 
-
-
 // this has to be here or else the clients try and send everything 
 // that they recieve from the server back to the server 
 // and everything explodes.
