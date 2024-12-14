@@ -172,8 +172,11 @@ class FileCabinet {
     // create a new document if no file exists
     const doc = new Document(this.doc_path, this.next_id.toString(), doc_name);
 
-    doc_id = this.next_id.toString();
-    this.next_id += 1;
+    doc.doc_id = this.next_id.toString();
+    console.log('current doc number:', doc.doc_id);
+    this.next_id = this.next_id + 1;
+    console.log('Next doc number:', this.next_id.toString());
+    
 
     // if this doc has been accessed before but is not currently open
     if (fs.existsSync(filePath)) {
