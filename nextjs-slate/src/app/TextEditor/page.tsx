@@ -12,8 +12,9 @@ import { useSearchParams } from 'next/navigation';
 export default function TextEditor() {
   const searchParams = useSearchParams();
   const docname = searchParams.get('docname');
+  console.log("This is the url docname field: ", docname)
   const { ydoc } = getYDoc(docname);
-  console.log("This is ydoc: ",ydoc)
+  console.log("This is ydoc title: ", ydoc.getText('shared-title').toString())
 
   return (
     <div className="flex flex-col h-screen font-mono">
