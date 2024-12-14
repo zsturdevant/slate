@@ -9,6 +9,8 @@ import { useSearchParams } from 'next/navigation';
 import { unstable_noStore as noStore } from "next/cache";
 
 // TODO: hover animations for buttons and text boxes
+export const dynamic = 'force-dynamic'
+// export const revalidate = 0
 
 export default function TextEditor() {
   noStore();
