@@ -8,6 +8,10 @@ export default function Card({ docname, onDelete }: { docname: string, onDelete:
     }
   };
 
+  const cardClicked = () => {
+    console.log("\n\n\n\n\n\n\n\n\n\n\nThis is the docname: ", docname)
+  };
+
   return (
     /*<button
       className='bg-[#5A5A5A] w-24 rounded-md h-8 ml-8 hover:bg-[#888] focus:outline-none'
@@ -23,17 +27,15 @@ export default function Card({ docname, onDelete }: { docname: string, onDelete:
       </Link>
     </button>*/
     <div className="flex justify-between items-center p-4 border mb-4">
-      <Link
-        href={{
-          pathname: '/TextEditor',
-          query: { docname: docname },
-        }}
-        passHref
-      >
-        <button className='bg-[#5A5A5A] w-24 rounded-md h-8 hover:bg-[#888] focus:outline-none'>
-          {docname}
-        </button>
-      </Link>
+      <button className='bg-[#5A5A5A] w-24 rounded-md h-8 hover:bg-[#888] focus:outline-none' onClick={cardClicked}>
+        <Link
+          href={{
+            pathname: '/TextEditor',
+            query: { docname: docname },
+          }}
+          passHref
+        > {docname} </Link>
+      </button>
       <button 
         className="text-red-500 ml-2"
         onClick={handleDelete}
