@@ -2,9 +2,9 @@
 
 import {Header} from "@/components/TextArea";
 import TextArea from "@/components/TextArea";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getYDoc } from '../../yjsClient';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { unstable_noStore as noStore } from "next/cache";
 
 // TODO: hover animations for buttons and text boxes

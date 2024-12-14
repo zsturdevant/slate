@@ -10,56 +10,67 @@ let ws;
 let last_update_recieved;
 
 export function getYDoc(docname) {
-  if (!ydoc) {
-    ydoc = new Y.Doc();
-    ws = new WebSocket('ws://localhost:8080');
 
-    ws.onopen = () => {
-      console.log('WebSocket connection established');
-      ws.send(
-        JSON.stringify({
-          action: 'open',
-          doc_name: docname
-        })
-      );
-    };
+  // Reset Yjs document and WebSocket connection when opening a new document
+  if (ydoc) {
+    ydoc.destroy(); // Clean up the previous Yjs document
+    ydoc = null;
+  }
+  
+  ydoc = new Y.Doc();
 
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
+  // Close any existing WebSocket connection      
+  if (ws) {
+    ws.close(); 
+    ws = null;
+  }
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+  ws = new WebSocket('ws://localhost:8080');
+ 
+  ws.onopen = () => {
+    console.log('WebSocket connection established');
+    ws.send(
+      JSON.stringify({
+        action: 'open',
+        doc_name: docname
+      })
+    );
+  };
 
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        console.log('Received message:', msg);
+  ws.onclose = () => {
+    console.log('WebSocket connection closed');
+  };
 
-        if (msg.action === 'update' && msg.update) {
-          const update = new Uint8Array(msg.update);
-          last_update_recieved = update;
-          Y.applyUpdate(ydoc, update);
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      console.log('Received message:', msg);
+
+      if (msg.action === 'update' && msg.update) {
+        const update = new Uint8Array(msg.update);
+        last_update_recieved = update;
+        Y.applyUpdate(ydoc, update);
           
-        } else if (msg.action === 'documentOpened') {
-          document_id = msg.doc_id
-          const update = new Uint8Array(msg.update);
-          last_update_recieved = update;
-          Y.applyUpdate(ydoc, update);
-          document_id = msg.doc_id;
+      } else if (msg.action === 'documentOpened') {
+        document_id = msg.doc_id
+        const update = new Uint8Array(msg.update);
+        last_update_recieved = update;
+        Y.applyUpdate(ydoc, update);
 
-          // update the shared title with the title provided by the server
-          const sharedTitle = ydoc.getText('shared-title');
-          sharedTitle.delete(0, sharedTitle.length);
-          sharedTitle.insert(0, msg.title || 'Untitled');
-        } else {
-          console.warn('Unrecognized message format:', msg);
-        }
-      } catch (err) {
-        console.error('Error processing message:', err);
+        // update the shared title with the title provided by the server
+        const sharedTitle = ydoc.getText('shared-title');
+        sharedTitle.delete(0, sharedTitle.length);
+        sharedTitle.insert(0, msg.title || 'Untitled');
+      } else {
+        console.warn('Unrecognized message format:', msg);
       }
-    };
+    } catch (err) {
+        console.error('Error processing message:', err);
+    }
   };
 
   const updateHandler = (update) => {
@@ -67,19 +78,18 @@ export function getYDoc(docname) {
     if (last_update_recieved == next_update) {
       console.log('stopped some bullshit');
     } else {
-      // console.log('Local update triggered:', Array.from(new Uint8Array(update)));
-      Y.logUpdate(next_update);
+        Y.logUpdate(next_update);
 
-      const message = JSON.stringify({
-        action: 'edit',
-        doc_name: docname,
-        doc_id: document_id,
-        update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
-      });
+        const message = JSON.stringify({
+          action: 'edit',
+          doc_name: docname,
+          doc_id: document_id,
+          update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
+        });
     
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(message);
-      }
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(message);
+        }
     }
   };
 
@@ -96,7 +106,8 @@ export function renameDocument(newTitle) {
 
   const message = JSON.stringify({
     action: 'rename',
-    doc_name: ydoc.getText('shared-title').toString(), // Get current document name
+    //doc_name: ydoc.getText('shared-title').toString(), // Get current document name
+    doc_name: newTitle,
     doc_id: document_id,
     new_title: newTitle,
   });
