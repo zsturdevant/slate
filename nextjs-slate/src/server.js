@@ -278,7 +278,7 @@ class FileCabinet {
 }
 
 // const wss = new WebSocket.Server({ port: 8080 });
-const wss = new WebSocket.Server({ port: 80});
+const wss = new WebSocket.Server({ port: 8080});
 const fileCabinet = new FileCabinet('./documents/');
 
 const documentEditors = {};
