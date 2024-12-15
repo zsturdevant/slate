@@ -4,16 +4,11 @@ let ydoc;
 let document_id = -1;
 let ws;
 
-// this has to be here or else the clients try and send everything 
-// that they recieve from the server back to the server 
-// and everything explodes.
-let last_update_recieved;
-
 export function getYDoc(docname) {
 
   // Reset Yjs document and WebSocket connection when opening a new document
   if (ydoc) {
-    ydoc.destroy(); // Clean up the previous Yjs document
+    ydoc.destroy();
     ydoc = null;
   }
   
@@ -41,11 +36,6 @@ export function getYDoc(docname) {
     console.log('WebSocket connection closed');
   };
 
-  // maybe get rid of this
-  // ws.onerror = (error) => {
-  //   console.error('WebSocket error:', error);
-  // };
-
   ws.onmessage = (event) => {
     try {
       const msg = JSON.parse(event.data);
@@ -53,13 +43,11 @@ export function getYDoc(docname) {
 
       if (msg.action === 'update' && msg.update) {
         const update = new Uint8Array(msg.update);
-        last_update_recieved = update;
         Y.applyUpdate(ydoc, update);
           
       } else if (msg.action === 'documentOpened') {
         document_id = msg.doc_id
         const update = new Uint8Array(msg.update);
-        last_update_recieved = update;
         Y.applyUpdate(ydoc, update);
 
         // update the shared title with the title provided by the server
@@ -75,22 +63,15 @@ export function getYDoc(docname) {
   };
 
   const updateHandler = (update) => {
-    const next_update = new Uint8Array(update)
-    if (last_update_recieved == next_update) {
-      console.log('stopped some bullshit');
-    } else {
-        Y.logUpdate(next_update);
+    const message = JSON.stringify({
+      action: 'edit',
+      doc_name: docname,
+      doc_id: document_id,
+      update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
+    });
 
-        const message = JSON.stringify({
-          action: 'edit',
-          doc_name: docname,
-          doc_id: document_id,
-          update: Array.from(new Uint8Array(update)), // Ensure this format is consistent
-        });
-    
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(message);
-        }
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(message);
     }
   };
 
@@ -107,7 +88,6 @@ export function renameDocument(newTitle) {
 
   const message = JSON.stringify({
     action: 'rename',
-    //doc_name: ydoc.getText('shared-title').toString(), // Get current document name
     doc_name: newTitle,
     doc_id: document_id,
     new_title: newTitle,
@@ -160,17 +140,16 @@ export function getDocList() {
   });
 }
 
+// delete a document
 export function deleteDocument(docname) {
   if (!ws || ws.readyState !== WebSocket.OPEN) {
-    // console.error('WebSocket is not open. Cannot delete document.');
-    // return;
     const ws = new WebSocket('ws://localhost:8080');
     ws.onopen = () => {
       console.log('WebSocket connection established');
       ws.send(
         JSON.stringify({
           action: 'delete_file',
-          doc_name: docname, // Send the document name to delete
+          doc_name: docname,
         })
       );
     };
@@ -179,20 +158,12 @@ export function deleteDocument(docname) {
   else {
     const message = JSON.stringify({
       action: 'delete_file',
-      doc_name: docname, // Send the document name to delete
+      doc_name: docname,
     });
   
     ws.send(message);
     console.log(`Delete request sent for "${docname}"`);
   }
-
-  // const message = JSON.stringify({
-  //   action: 'delete_file',
-  //   doc_name: docname, // Send the document name to delete
-  // });
-
-  // ws.send(message);
-  // console.log(`Delete request sent for "${docname}"`);
 }
 
 
