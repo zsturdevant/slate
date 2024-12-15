@@ -14,7 +14,7 @@ export function getYDoc(docname) {
   
   ydoc = new Y.Doc();
 
-  // Close any existing WebSocket connection      
+  // Close any existing WebSocket connection
   if (ws) {
     ws.close(); 
     ws = null;
