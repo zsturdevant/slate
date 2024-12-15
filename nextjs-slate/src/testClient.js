@@ -2,7 +2,7 @@ import WebSocket from 'ws'; // Node WebSocket library
 import * as Y from 'yjs';
 
 const SERVER_URL = 'ws://localhost:8080';
-/* where we change address to server IP address
+/* Uncomment for server IP address
 const SERVER_URL = 'wss://3.14.217.132:8080';
 */
 
@@ -62,7 +62,7 @@ async function simulateClient(docName, id, iterations, payloadSize) {
 
       const averageRTT = totalRTT / iterations;
       console.log(`Client ${id} Average RTT: ${averageRTT} ms`);
-      resolve({ id, averageRTT });
+      resolve(averageRTT);
       ws.close();
     };
 
@@ -70,24 +70,31 @@ async function simulateClient(docName, id, iterations, payloadSize) {
   });
 }
 
-// Main function to test single-client and scalability
+// Main function to test both single-client RTT and scalability
 async function main() {
   const docName = 'testDoc';
   const iterations = 10; // Number of RTT measurements
-  const payloadSizes = [100, 500, 1000, 5000]; // Varying sizes for scalability testing
+  const payloadSize = 100; // Fixed payload size for single-client RTT testing
 
-  console.log('Testing single-client RTT:');
-  const singleClientResults = await simulateClient(docName, 0, iterations, 100);
-  console.log(`Single-client average RTT: ${singleClientResults.averageRTT} ms`);
+  console.log('Testing single-client RTT using 3 clients:');
+  const clients = [0, 1, 2].map((id) => simulateClient(docName, id, iterations, payloadSize));
+  const clientRTTs = await Promise.all(clients);
 
-  console.log('\nTesting scalability:');
-  for (const size of payloadSizes) {
-    console.log(`Testing with payload size: ${size} characters`);
-    const clients = [0, 1, 2].map((id) => simulateClient(`${docName}_${size}`, id, iterations, size));
-    const results = await Promise.all(clients);
-    results.forEach((result) =>
-      console.log(`Client ${result.id}, Payload size ${size}: Average RTT = ${result.averageRTT} ms`)
+  const singleClientAverageRTT = clientRTTs.reduce((sum, rtt) => sum + rtt, 0) / clientRTTs.length;
+  console.log(`Single-client average RTT (3 clients): ${singleClientAverageRTT} ms\n`);
+
+  // Scalability testing with varying document sizes
+  console.log('Testing scalability with varying document sizes:');
+  const docSizes = [100, 500, 1000, 5000, 10000, 50000, 100000]; // Document sizes in characters
+  for (const size of docSizes) {
+    console.log(`\nTesting document size: ${size} characters`);
+    const scalabilityClients = [0, 1, 2].map((id) =>
+      simulateClient(`${docName}_${size}`, id, iterations, size)
     );
+    const scalabilityResults = await Promise.all(scalabilityClients);
+
+    const averageRTT = scalabilityResults.reduce((sum, rtt) => sum + rtt, 0) / scalabilityResults.length;
+    console.log(`Average RTT for document size ${size}: ${averageRTT} ms`);
   }
 }
 
