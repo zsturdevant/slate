@@ -2,19 +2,26 @@ import WebSocket from 'ws'; // Node WebSocket library
 import * as Y from 'yjs';
 
 const SERVER_URL = 'ws://localhost:8080';
+/* where we change address to server IP address
+const SERVER_URL = 'wss://3.14.217.132:8080';
+*/
 
 // Utility to measure RTT
 async function measureRTT(client, message) {
   const start = Date.now();
   return new Promise((resolve) => {
-    client.onmessage = () => {
+    const onMessage = () => {
       const end = Date.now();
+      client.removeEventListener('message', onMessage);
       resolve(end - start); // Calculate RTT
     };
+
+    client.addEventListener('message', onMessage);
     client.send(JSON.stringify(message));
   });
 }
 
+// Function to simulate a client
 async function simulateClient(docName, id, iterations, payloadSize) {
   return new Promise((resolve) => {
     const ws = new WebSocket(SERVER_URL);
@@ -24,7 +31,6 @@ async function simulateClient(docName, id, iterations, payloadSize) {
     ws.onopen = async () => {
       console.log(`Client ${id} connected`);
 
-      
       // Open the document
       ws.send(
         JSON.stringify({
@@ -39,9 +45,11 @@ async function simulateClient(docName, id, iterations, payloadSize) {
         // Generate data of specified payload size
         const inputData = 'a'.repeat(payloadSize) + `_${id}_${i}`;
 
-        // Measure RTT for an edit action
-        sharedText.insert(0, inputData); // Simulate local changes
+        // Simulate local change and encode it
+        sharedText.insert(0, inputData);
         const update = Y.encodeStateAsUpdate(ydoc);
+
+        // Measure RTT for the edit action
         const rtt = await measureRTT(ws, {
           action: 'edit',
           doc_name: docName,
@@ -52,8 +60,9 @@ async function simulateClient(docName, id, iterations, payloadSize) {
         console.log(`Client ${id} Iteration ${i}: RTT = ${rtt} ms`);
       }
 
-      console.log(`Client ${id} Average RTT: ${totalRTT / iterations} ms`);
-      resolve(totalRTT / iterations); // Resolve average RTT
+      const averageRTT = totalRTT / iterations;
+      console.log(`Client ${id} Average RTT: ${averageRTT} ms`);
+      resolve({ id, averageRTT });
       ws.close();
     };
 
@@ -61,18 +70,25 @@ async function simulateClient(docName, id, iterations, payloadSize) {
   });
 }
 
+// Main function to test single-client and scalability
 async function main() {
   const docName = 'testDoc';
   const iterations = 10; // Number of RTT measurements
-  const payloadSize = 100; // Characters per edit
-  const clientPromises = [];
+  const payloadSizes = [100, 500, 1000, 5000]; // Varying sizes for scalability testing
 
-  for (let i = 0; i < 3; i++) {
-    clientPromises.push(simulateClient(docName, i, iterations, payloadSize));
+  console.log('Testing single-client RTT:');
+  const singleClientResults = await simulateClient(docName, 0, iterations, 100);
+  console.log(`Single-client average RTT: ${singleClientResults.averageRTT} ms`);
+
+  console.log('\nTesting scalability:');
+  for (const size of payloadSizes) {
+    console.log(`Testing with payload size: ${size} characters`);
+    const clients = [0, 1, 2].map((id) => simulateClient(`${docName}_${size}`, id, iterations, size));
+    const results = await Promise.all(clients);
+    results.forEach((result) =>
+      console.log(`Client ${result.id}, Payload size ${size}: Average RTT = ${result.averageRTT} ms`)
+    );
   }
-
-  const rtts = await Promise.all(clientPromises);
-  console.log('RTT Results:', rtts);
 }
 
 main();

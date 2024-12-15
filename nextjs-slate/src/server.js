@@ -3,22 +3,6 @@ const fs = require('fs');
 const Y = require('yjs');
 const path = require('path');
 
-// File for storing metrics
-const metricsPath = path.join(__dirname, 'metrics.json');
-
-// Utility to log metrics
-function log_metrics(action, docName, latency, docSize = null) {
-  const metrics = fs.existsSync(metricsPath)
-    ? JSON.parse(fs.readFileSync(metricsPath, 'utf-8'))
-    : [];
-
-  // Add a new metric entry
-  metrics.push({ action, docName, latency, docSize, timestamp: Date.now() });
-
-  // Write back the updated metrics
-  fs.writeFileSync(metricsPath, JSON.stringify(metrics, null, 2), 'utf-8');
-}
-
 class Document {
   constructor(path, doc_id, document_name) {
     this.yDoc = new Y.Doc(); // Initialize Yjs document
@@ -315,11 +299,6 @@ wss.on('connection', (ws) => {
             doc_id: current_doc_id,     // Include document identifier
             title: doc.get_doc_name(),  // include document title
           }),
-          () => {
-            const latency = Date.now() - startTime; // Measure latency
-            log_metrics('open', doc_name, latency);
-            console.log(`Latency for 'open' action: ${latency} ms`);
-          }
         );
       } else if (action === 'edit') {
         const startTime = Date.now(); 
@@ -332,11 +311,6 @@ wss.on('connection', (ws) => {
           const docSize = doc.contents.toString().length; // Get document size
           ws.send(
             JSON.stringify({ action: 'ack', doc_name }),
-            () => {
-              const latency = Date.now() - startTime; // Measure latency
-              log_metrics('edit', doc_name, latency, docSize); // Log latency & size
-              console.log(`Latency for 'edit' action: ${latency} ms, size: ${docSize}`);
-            }
           );
         } else {
           console.warn(`Document with ID ${doc_id} not found`);
@@ -359,10 +333,6 @@ wss.on('connection', (ws) => {
           }
 
         console.log(`Document "${doc_name}" deleted successfully.`);
-
-        const latency = Date.now() - startTime; // Measure latency
-        log_metrics('delete_file', doc_name, latency); // Log latency
-        console.log(`Latency for 'delete_file' action: ${latency} ms`);
         } else {
           console.warn(`Document with ID ${doc_id} not found for deletion.`);
         }
@@ -373,10 +343,6 @@ wss.on('connection', (ws) => {
         if (doc) {
           fileCabinet.rename_document(doc_id, new_title);
           fileCabinet.broadcast_rename(ws, doc, new_title);
-
-          const latency = Date.now() - startTime; // Measure latency
-          log_metrics('rename', doc_name, latency); // Log latency
-          console.log(`Latency for 'rename' action: ${latency} ms`);
         } else {
           console.warn(`Document with ID ${doc_id} not found for renaming.`);
         }
