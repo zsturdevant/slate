@@ -41,9 +41,10 @@ export function getYDoc(docname) {
     console.log('WebSocket connection closed');
   };
 
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
-  };
+  // maybe get rid of this
+  // ws.onerror = (error) => {
+  //   console.error('WebSocket error:', error);
+  // };
 
   ws.onmessage = (event) => {
     try {
