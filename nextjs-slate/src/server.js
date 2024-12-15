@@ -425,4 +425,4 @@ wss.on('connection', (ws) => {
   });
 });
 
-console.log('Server listening on port 80');
+console.log('Server listening on port 8080');
