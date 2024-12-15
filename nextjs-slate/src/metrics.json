@@ -35222,5 +35222,215 @@
     "latency": 10,
     "docSize": 23,
     "timestamp": 1734201404732
+  },
+  {
+    "action": "open",
+    "docName": "It auto reloads too",
+    "latency": 62,
+    "docSize": null,
+    "timestamp": 1734206202233
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 23,
+    "docSize": 23,
+    "timestamp": 1734206202266
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 22,
+    "docSize": 23,
+    "timestamp": 1734206202273
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 20,
+    "docSize": 23,
+    "timestamp": 1734206202278
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 20,
+    "docSize": 23,
+    "timestamp": 1734206202284
+  },
+  {
+    "action": "open",
+    "docName": "It auto reloads too",
+    "latency": 1,
+    "docSize": null,
+    "timestamp": 1734206622251
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 3,
+    "docSize": 23,
+    "timestamp": 1734206622259
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 6,
+    "docSize": 23,
+    "timestamp": 1734206622266
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 15,
+    "docSize": 23,
+    "timestamp": 1734206622273
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 22,
+    "docSize": 23,
+    "timestamp": 1734206622283
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 32,
+    "docSize": 23,
+    "timestamp": 1734206622291
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 38,
+    "docSize": 23,
+    "timestamp": 1734206622297
+  },
+  {
+    "action": "open",
+    "docName": "fun times",
+    "latency": 1,
+    "docSize": null,
+    "timestamp": 1734206750380
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 2,
+    "docSize": 17,
+    "timestamp": 1734206750398
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 1,
+    "docSize": 17,
+    "timestamp": 1734206750409
+  },
+  {
+    "action": "open",
+    "docName": "fun times",
+    "latency": 0,
+    "docSize": null,
+    "timestamp": 1734206750882
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 1,
+    "docSize": 17,
+    "timestamp": 1734206750895
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 2,
+    "docSize": 17,
+    "timestamp": 1734206750903
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 7,
+    "docSize": 17,
+    "timestamp": 1734206750908
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 10,
+    "docSize": 17,
+    "timestamp": 1734206750912
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 15,
+    "docSize": 17,
+    "timestamp": 1734206750917
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 18,
+    "docSize": 17,
+    "timestamp": 1734206750921
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 1,
+    "docSize": 17,
+    "timestamp": 1734206750927
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 6,
+    "docSize": 17,
+    "timestamp": 1734206750932
+  },
+  {
+    "action": "open",
+    "docName": "It auto reloads too",
+    "latency": 13,
+    "docSize": null,
+    "timestamp": 1734206991839
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 7,
+    "docSize": 23,
+    "timestamp": 1734206991859
+  },
+  {
+    "action": "edit",
+    "docName": "It auto reloads too",
+    "latency": 15,
+    "docSize": 23,
+    "timestamp": 1734206991872
+  },
+  {
+    "action": "open",
+    "docName": "fun times",
+    "latency": 3,
+    "docSize": null,
+    "timestamp": 1734206996979
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 1,
+    "docSize": 17,
+    "timestamp": 1734206996988
+  },
+  {
+    "action": "edit",
+    "docName": "fun times",
+    "latency": 8,
+    "docSize": 17,
+    "timestamp": 1734206996995
   }
 ]
