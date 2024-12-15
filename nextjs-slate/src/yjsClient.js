@@ -26,7 +26,7 @@ export function getYDoc(docname) {
   }
 
   ws = new WebSocket('ws://localhost:8080');
- 
+
   ws.onopen = () => {
     console.log('WebSocket connection established');
     ws.send(
@@ -41,9 +41,10 @@ export function getYDoc(docname) {
     console.log('WebSocket connection closed');
   };
 
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
-  };
+  // maybe get rid of this
+  // ws.onerror = (error) => {
+  //   console.error('WebSocket error:', error);
+  // };
 
   ws.onmessage = (event) => {
     try {
@@ -161,17 +162,37 @@ export function getDocList() {
 
 export function deleteDocument(docname) {
   if (!ws || ws.readyState !== WebSocket.OPEN) {
-    console.error('WebSocket is not open. Cannot delete document.');
-    return;
+    // console.error('WebSocket is not open. Cannot delete document.');
+    // return;
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+      ws.send(
+        JSON.stringify({
+          action: 'delete_file',
+          doc_name: docname, // Send the document name to delete
+        })
+      );
+    };
+  } 
+  
+  else {
+    const message = JSON.stringify({
+      action: 'delete_file',
+      doc_name: docname, // Send the document name to delete
+    });
+  
+    ws.send(message);
+    console.log(`Delete request sent for "${docname}"`);
   }
 
-  const message = JSON.stringify({
-    action: 'delete_file',
-    doc_name: docname, // Send the document name to delete
-  });
+  // const message = JSON.stringify({
+  //   action: 'delete_file',
+  //   doc_name: docname, // Send the document name to delete
+  // });
 
-  ws.send(message);
-  console.log(`Delete request sent for "${docname}"`);
+  // ws.send(message);
+  // console.log(`Delete request sent for "${docname}"`);
 }
 
 
