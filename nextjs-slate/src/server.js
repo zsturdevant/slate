@@ -277,7 +277,8 @@ class FileCabinet {
   }
 }
 
-const wss = new WebSocket.Server({ port: 8080 });
+// const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 80});
 const fileCabinet = new FileCabinet('./documents/');
 
 const documentEditors = {};
@@ -424,4 +425,4 @@ wss.on('connection', (ws) => {
   });
 });
 
-console.log('Server listening on port 8080');
+console.log('Server listening on port 80');
