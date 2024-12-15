@@ -1,13 +1,12 @@
 "use client";
 
+//import { renameDocument } from '@/yjsClient';
 import { renameDocument } from '@/yjsClient';
 import React, { useEffect, useState } from 'react';
 import { FaArrowLeftLong} from "react-icons/fa6";
 import Link from 'next/link';
 import * as Y from 'yjs';
 // import { KeyObject } from 'crypto';
-
-
 
 export function Header({doc}: {doc: Y.Doc}) {
   const [title, setTitle] = useState('');
@@ -29,14 +28,6 @@ export function Header({doc}: {doc: Y.Doc}) {
   const handleTitleChange = (e:any) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-
-    //update shared title in the Y.Doc
-    const sharedTitle = doc.getText('shared-title');
-    sharedTitle.delete(0, sharedTitle.length);
-    sharedTitle.insert(0, newTitle);
-
-    // Notify the server about the title change
-    renameDocument(newTitle);
   };
 
   const handleTitleKeyDown = (e: any) => {
@@ -44,6 +35,14 @@ export function Header({doc}: {doc: Y.Doc}) {
     // Optional: Save title changes on Enter and blur the input
     if (e.key === 'Enter') {
       e.target.blur(); // Unfocus the input field
+
+      //update shared title in the Y.Doc
+      const sharedTitle = doc.getText('shared-title');
+      sharedTitle.delete(0, sharedTitle.length);
+      sharedTitle.insert(0, title);
+
+      // Notify the server about the title change
+      renameDocument(title);
     }
   };
 
