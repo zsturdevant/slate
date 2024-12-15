@@ -85,35 +85,29 @@ class Document {
           ? update
           : new Uint8Array(Object.values(update));
   
-      //this.yDoc
-      Y.logUpdate(updateArray);
-  
       // Apply the update to the Y.Doc
       Y.applyUpdate(this.yDoc, updateArray);
-  
-      // Log the updated contents for debugging
-      console.log('Document contents after update:', this.yDoc.getText('shared-text').toString());
       
       // tracking document size
-      const size = this.contents.toString().length;
-      console.log(`Document size after update: ${size} characters`);
+      // const size = this.contents.toString().length;
+      // console.log(`Document size after update: ${size} characters`);
   
-      // Save the document after applying the update
-      // this.save();
     } catch (error) {
       console.error('Error applying update:', error);
     }
   }
 
+  // change the name of a file
   name_file(new_name) {
     this.doc_name.delete(0, this.doc_name.length);
     this.doc_name.insert(0, new_name);
   }
 
+  // handles saving and deleting of new and old doc
   rename_doc(new_title) {
     try {
       const old_title = this.doc_name.toString();
-      this.name_file(new_title); // Update the title in Y.Text
+      this.name_file(new_title);
   
       // Rename the file on disk
       const oldFilePath = path.join(this.path, `${old_title}.json`);
@@ -132,7 +126,7 @@ class Document {
   }
 }
 
-
+// the class for holding 
 class FileCabinet {
   constructor(doc_path) {
     this.doc_path = doc_path;
@@ -160,7 +154,7 @@ class FileCabinet {
   }
 
   open_file(doc_name) {
-    console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nThis is the docname from open_file on server: ", doc_name);
+    console.log("This is the docname from open_file on server: ", doc_name);
     const filePath = path.join(this.doc_path, `${doc_name}.json`);
     let doc_id;
     
@@ -203,14 +197,6 @@ class FileCabinet {
       doc.save();
       console.log('Created new document:', doc_name);
     }
-    /* this is a new doc that has never been opened
-    } else {
-      doc.save() // save new document to disk
-      this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
-      this.open_docs.set(doc.get_doc_id(), doc);
-      return doc;
-    }
-      */
     
     // register the document in the mpapings
     this.doc_name_to_id.set(doc.get_doc_name(), doc.get_doc_id());
