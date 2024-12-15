@@ -14,13 +14,13 @@ export function getYDoc(docname) {
   
   ydoc = new Y.Doc();
 
-  // Close any existing WebSocket connection      
+  // Close any existing WebSocket connection
   if (ws) {
     ws.close(); 
     ws = null;
   }
 
-  ws = new WebSocket('ws://3.21.204.237:8080');
+  ws = new WebSocket('wss://38.252.161.74:8080');
 
   ws.onopen = () => {
     console.log('WebSocket connection established');
@@ -99,7 +99,7 @@ export function renameDocument(newTitle) {
 
 export function getDocList() {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('wss://38.252.161.74:8080');
     let docs = [];
 
     ws.onopen = () => {
@@ -143,7 +143,7 @@ export function getDocList() {
 // delete a document
 export function deleteDocument(docname) {
   if (!ws || ws.readyState !== WebSocket.OPEN) {
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('wss://38.252.161.74:8080');
     ws.onopen = () => {
       console.log('WebSocket connection established');
       ws.send(
