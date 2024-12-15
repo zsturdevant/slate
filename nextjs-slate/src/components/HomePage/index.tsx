@@ -10,6 +10,7 @@ export default function Home() {
   const [docList, setDocList] = useState<string[]>([]); //useState()'
   const [loading, setLoading] = useState(true);  // State to track loading status
   const [error, setError] = useState<string | null>(null);  // State to track any errors
+  const [untitledName, setUntitledName] = useState('');
 
   // Fetch document list on component mount
   useEffect(() => {
@@ -19,6 +20,17 @@ export default function Home() {
         console.log("This is the type of docs: ", typeof(docs))
         console.log("This is docs: ", docs)
         setDocList(docs);  // Set the docs to state
+        let found = false; // flag: has appropriate next untitled doc number been found
+        let i = 1; // scan doc list for 'untitled 1, ...'
+        while (!found) { // keep going until you find a good next number
+          const potential_name = 'untitled ' + i.toString();
+          if (!docs.includes(potential_name)) { // if 'untitled i' doesn't exist yet
+            found = true; // we have found an appropriate name
+            setUntitledName(potential_name);
+          } else {
+            i = i + 1; // increment counter to keep looking for an appropriate name
+          }
+        }
       } catch (err) {
         setError('Failed to load documents:' + err);  // Handle error
       } finally {
@@ -53,7 +65,7 @@ export default function Home() {
         <button id='add_file_or_folder' className='bg-[#5A5A5A] w-24 rounded-md h-8 ml-8'>
           <Link prefetch = {false} href={{
             pathname: '/TextEditor',
-            query: { docname: 'untitled' }
+            query: { docname: untitledName }
           }}>Add + </Link>
         </button>
         <div className="files text-xl">
