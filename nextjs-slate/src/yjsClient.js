@@ -20,7 +20,7 @@ export function getYDoc(docname) {
     ws = null;
   }
 
-  ws = new WebSocket('ws://localhost:8080');
+  ws = new WebSocket('ws://3.21.204.237:8080');
 
   ws.onopen = () => {
     console.log('WebSocket connection established');
