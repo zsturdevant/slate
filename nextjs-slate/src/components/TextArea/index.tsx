@@ -50,12 +50,14 @@ export function Header({doc}: {doc: Y.Doc}) {
       <>
       <div className="header-wrapper flex flex-col w-full p-4 bg-[#F9FBFD] dark:bg-[#1E202F]">
           <div className="top-part flex items-center text-2xl gap-4 m-2">
-              <div className="arrows flex items-center gap-2">
-                  <button> <Link href={'.'}> <FaArrowLeftLong/> </Link> </button>
+              <div className="flex items-center gap-2">
+                  <button className='transition ease-in-out hover:-translate-y-1 hover:scale-110 rounded-md p-2 duration-300'>
+                    <Link href={'.'}> <FaArrowLeftLong/> </Link>
+                  </button>
               </div>
               <input 
-                className="doc-name placeholder:text-[#5A5A5A] dark:placeholder:text-[#b5c1ec] max-w-64 w-auto truncate bg-inherit dark:bg-[#1E202F] focus:placeholder-transparent"
-                placeholder="Untitled"
+                className="doc-name max-w-64 w-auto truncate rounded-md bg-inherit dark:bg-[#1E202F]
+                            transition ease-in-out focus:-translate-y-1 hover:-translate-y-1 focus:scale-110 hover:scale-110 outline-none p-2 duration-300"
                 defaultValue={title}
                 onChange={handleTitleChange}
                 onKeyDown={handleTitleKeyDown}
@@ -105,8 +107,8 @@ export default function TextArea({doc}: {doc: Y.Doc}) {
             <textarea 
                     className="bg-[#ffffff] dark:bg-[#222435] text-red-500 placeholder:text-[#5A5A5A] dark:placeholder:text-[#b5c1ec] dark:text-[#CAD3F2]
                                flex-initial flex-shrink-0 resize-none outline-none border-[#eeeeee] border-2 dark:border-[#8FADF3] dark:border-b-transparent border-b-transparent
-                               w-8/12 min-w-[500px] max-w-[650px] h-full mx-auto
-                               px-8 py-4 rounded-t-md focus:placeholder-transparent"
+                               w-10/12 min-w-[500px] h-full
+                               px-8 py-4 mx-auto rounded-t-md focus:placeholder-transparent"
                     value={text}
                     onChange={handleChange}/>
       </div>
