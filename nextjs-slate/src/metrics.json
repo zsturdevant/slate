@@ -63572,5 +63572,89 @@
     "latency": 8,
     "docSize": 19,
     "timestamp": 1734237725591
+  },
+  {
+    "action": "delete_file",
+    "docName": "Untitled 6",
+    "latency": 9,
+    "docSize": null,
+    "timestamp": 1734276785533
+  },
+  {
+    "action": "delete_file",
+    "docName": "Untitled 7",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276787471
+  },
+  {
+    "action": "delete_file",
+    "docName": "Untitled 8",
+    "latency": 3,
+    "docSize": null,
+    "timestamp": 1734276789765
+  },
+  {
+    "action": "delete_file",
+    "docName": "Untitled 9",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276791845
+  },
+  {
+    "action": "delete_file",
+    "docName": "untitled 1",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276794087
+  },
+  {
+    "action": "delete_file",
+    "docName": "untitled 2",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276796794
+  },
+  {
+    "action": "delete_file",
+    "docName": "untitled 3",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276798424
+  },
+  {
+    "action": "delete_file",
+    "docName": "untitled 4",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276800112
+  },
+  {
+    "action": "delete_file",
+    "docName": "untitled 5",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276801678
+  },
+  {
+    "action": "delete_file",
+    "docName": "h",
+    "latency": 2,
+    "docSize": null,
+    "timestamp": 1734276803295
+  },
+  {
+    "action": "delete_file",
+    "docName": "fun times",
+    "latency": 3,
+    "docSize": null,
+    "timestamp": 1734276805264
+  },
+  {
+    "action": "rename",
+    "docName": "Book report",
+    "latency": 1,
+    "docSize": null,
+    "timestamp": 1734276826434
   }
 ]
